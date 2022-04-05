@@ -105,9 +105,9 @@ Histogram3D::data_t Histogram3D::GetBinContent(Axis::index_t xbin, Axis::index_t
         FlushBuffer();
 #endif /* H3D_USE_BUFFER */
 
-    if( xbin>=0 && xbin<xaxis.GetBinCountAll() &&
-        ybin>=0 && ybin<yaxis.GetBinCountAll() &&
-        zbin>=0 && zbin<zaxis.GetBinCountAll() ) {
+    if( xbin<xaxis.GetBinCountAll() &&
+        ybin<yaxis.GetBinCountAll() &&
+        zbin<zaxis.GetBinCountAll() ) {
 #ifndef USE_ROWS
         return data[xaxis.GetBinCountAll()*yaxis.GetBinCountAll()*zbin +
                     xaxis.GetBinCountAll()*ybin + xbin];
@@ -127,9 +127,9 @@ void Histogram3D::SetBinContent(Axis::index_t xbin, Axis::index_t ybin, Axis::in
         FlushBuffer();
 #endif /* H3D_USE_BUFFER */
 
-    if( xbin>=0 && xbin<xaxis.GetBinCountAll() &&
-        ybin>=0 && ybin<yaxis.GetBinCountAll() &&
-        zbin>=0 && zbin<zaxis.GetBinCountAll() ) {
+    if( xbin<xaxis.GetBinCountAll() &&
+        ybin<yaxis.GetBinCountAll() &&
+        zbin<zaxis.GetBinCountAll() ) {
 #ifndef USE_ROWS
         data[xaxis.GetBinCountAll()*yaxis.GetBinCountAll()*zbin +
              xaxis.GetBinCountAll()*ybin + xbin] = c;
@@ -143,9 +143,9 @@ void Histogram3D::SetBinContent(Axis::index_t xbin, Axis::index_t ybin, Axis::in
 
 void Histogram3D::FillDirect(Axis::bin_t x, Axis::bin_t y, Axis::bin_t z, data_t weight)
 {
-    const int xbin = xaxis.FindBin( x );
-    const int ybin = yaxis.FindBin( y );
-    const int zbin = zaxis.FindBin( z );
+    const Axis::index_t xbin = xaxis.FindBin( x );
+    const Axis::index_t ybin = yaxis.FindBin( y );
+    const Axis::index_t zbin = zaxis.FindBin( z );
 #ifndef USE_ROWS
     data[xaxis.GetBinCountAll()*yaxis.GetBinCountAll()*zbin +
          xaxis.GetBinCountAll()*ybin + xbin] += weight;

@@ -94,7 +94,7 @@ Histogram2D::data_t Histogram2D::GetBinContent(Axis::index_t xbin, Axis::index_t
         FlushBuffer();
 #endif /* H2D_USE_BUFFER */
 
-  if( xbin>=0 && xbin<xaxis.GetBinCountAll() && ybin>=0 && ybin<yaxis.GetBinCountAll() ) {
+  if( xbin<xaxis.GetBinCountAll() && ybin<yaxis.GetBinCountAll() ) {
 #ifndef USE_ROWS
     return data[xaxis.GetBinCountAll()*ybin + xbin];
 #else
@@ -113,7 +113,7 @@ void Histogram2D::SetBinContent(Axis::index_t xbin, Axis::index_t ybin, data_t c
         FlushBuffer();
 #endif /* H2D_USE_BUFFER */
 
-  if( xbin>=0 && xbin<xaxis.GetBinCountAll() && ybin>=0 && ybin<yaxis.GetBinCountAll() ) {
+  if( xbin<xaxis.GetBinCountAll() && ybin<yaxis.GetBinCountAll() ) {
 #ifndef USE_ROWS
     data[xaxis.GetBinCountAll()*ybin + xbin] = c;
 #else
@@ -126,8 +126,8 @@ void Histogram2D::SetBinContent(Axis::index_t xbin, Axis::index_t ybin, data_t c
 
 void Histogram2D::FillDirect(Axis::bin_t x, Axis::bin_t y, data_t weight)
 {
-  const int xbin = xaxis.FindBin( x );
-  const int ybin = yaxis.FindBin( y );
+  const Axis::index_t xbin = xaxis.FindBin( x );
+  const Axis::index_t ybin = yaxis.FindBin( y );
 #ifndef USE_ROWS
   data[xaxis.GetBinCountAll()*ybin + xbin] += weight;
 #else

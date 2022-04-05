@@ -65,7 +65,7 @@ Histogram1D::data_t Histogram1D::GetBinContent(Axis::index_t bin)
 #ifdef H1D_USE_BUFFER
   FlushBuffer();
 #endif /* H1D_USE_BUFFER */
-  if( bin>=0 && bin<xaxis.GetBinCountAll() ) {
+  if( bin<xaxis.GetBinCountAll() ) {
     return data[bin];
   } else {
     return 0;
