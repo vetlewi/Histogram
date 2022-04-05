@@ -8,7 +8,7 @@ include(cmake/CPM.cmake)
 CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.8.0")
 
 find_package(Threads REQUIRED)
-find_package(ROOT REQUIRED COMPONENTS RIO Hist)
+find_package(ROOT COMPONENTS RIO Hist)
 
 CPMAddPackage(
         NAME sanitizers-cmake
@@ -22,25 +22,29 @@ if ( sanitizers-cmake_ADDED )
     find_package(Sanitizers)
 endif()
 
-
-add_library(${PROJECT_NAME}
-    # Headers
+# ---- Add source files ----
+set(headers
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/Histogram1D.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/Histogram2D.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/Histogram3D.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/Histograms.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/MamaWriter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/RootWriter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/ThreadSafeHistograms.h
-
-    # Sources
+)
+set(sources
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histogram1D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histogram2D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histogram3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histograms.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/MamaWriter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/RootWriter.cpp
 )
+
+if(ROOT_FOUND)
+    list(APPEND headers ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/RootWriter.h)
+    list(APPEND sources ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/RootWriter.cpp)
+endif()
+
+add_library(${PROJECT_NAME} ${headers} ${sources})
 
 set_target_properties(Histogram PROPERTIES CXX_STANDARD 17)
 
@@ -49,8 +53,10 @@ target_include_directories(Histogram PUBLIC
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
 )
 
-target_link_libraries(Histogram PRIVATE
-    ROOT::RIO ROOT::Hist)
+if(ROOT_FOUND)
+    target_link_libraries(Histogram PRIVATE ROOT::RIO ROOT::Hist)
+endif()
+
 
 # ---- Create an installable target ----
 # this allows users to install and find the library via `find_package()`.
