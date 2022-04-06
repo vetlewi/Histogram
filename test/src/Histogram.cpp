@@ -33,10 +33,16 @@ TEST_CASE( "1D histogram" ){
         CHECK(hist->GetTitle() == "hist title");
         CHECK(hist->GetAxisX().GetName() == "hist_xaxis");
         CHECK(hist->GetAxisX().GetTitle() == "x");
+
+        CHECK(hist->GetAxisX().GetLeft() == 0);
+        CHECK(hist->GetAxisX().GetRight() == 1024);
+        CHECK(hist->GetAxisX().GetBinWidth() == 1.0);
+
     }
 
     SUBCASE("Number of bins"){
         CHECK(hist->GetAxisX().GetBinCount() == 1024);
+        CHECK(hist->GetAxisX().GetBinCountAll() == hist->GetAxisX().GetBinCount() + 2);
     }
 
     SUBCASE("Fill and lookup"){
@@ -46,7 +52,6 @@ TEST_CASE( "1D histogram" ){
         hist->Fill(83.5);
         CHECK(hist->GetEntries() == 2);
         CHECK(hist->GetBinContent(hist->GetAxisX().FindBin(83.5)) == 2);
-
     }
 
     SUBCASE("Fill and reset"){
@@ -57,6 +62,10 @@ TEST_CASE( "1D histogram" ){
 
         hist->Reset();
         CHECK(hist->GetEntries() == 0);
+
+        hist->Fill(83);
+        hist->Fill(83.5);
+        CHECK(hist->GetEntries() == 2);
     }
 
     SUBCASE("Over/underflow"){
@@ -71,6 +80,9 @@ TEST_CASE( "1D histogram" ){
         auto hist2 = histograms.Find1D("hist");
         CHECK( hist2 != nullptr );
         CHECK(hist2 == hist);
+
+        hist2->Fill(293., 192.);
+        CHECK(hist->GetEntries() == hist2->GetEntries());
 
         hist2 = histograms.Find1D("blah");
         CHECK(hist2 == nullptr);
@@ -100,11 +112,21 @@ TEST_CASE( "2D histogram" ){
         CHECK(mat->GetAxisY().GetName() == "mat_yaxis");
         CHECK(mat->GetAxisX().GetTitle() == "x");
         CHECK(mat->GetAxisY().GetTitle() == "y");
+
+        CHECK(mat->GetAxisX().GetLeft() == 0);
+        CHECK(mat->GetAxisX().GetRight() == 1024);
+        CHECK(mat->GetAxisX().GetBinWidth() == 1.0);
+
+        CHECK(mat->GetAxisY().GetLeft() == 0);
+        CHECK(mat->GetAxisY().GetRight() == 2048);
+        CHECK(mat->GetAxisY().GetBinWidth() == 1.0);
     }
 
     SUBCASE("Number of bins"){
         CHECK(mat->GetAxisX().GetBinCount() == 1024);
+        CHECK(mat->GetAxisX().GetBinCountAll() == mat->GetAxisX().GetBinCount() + 2);
         CHECK(mat->GetAxisY().GetBinCount() == 2048);
+        CHECK(mat->GetAxisY().GetBinCountAll() == mat->GetAxisY().GetBinCount() + 2);
     }
 
     SUBCASE("Fill and lookup"){
@@ -133,13 +155,16 @@ TEST_CASE( "2D histogram" ){
         CHECK( mat2 != nullptr );
         CHECK(mat2 == mat);
 
+        mat2->Fill(293., 192.);
+        CHECK(mat->GetEntries() == mat2->GetEntries());
+
         mat2 = histograms.Find2D("blah");
         CHECK(mat2 == nullptr);
         CHECK(mat2 != mat);
 
     }
 
-    SUBCASE("Get list of 1D histograms"){
+    SUBCASE("Get list of 2D histograms"){
         auto mat2 = histograms.Create2D("mat2", "mat2", 2048, 0, 2048, "x2", 1024, -512, 512, "y2");
         mat2->Fill(93, 21.1);
         for ( auto &h : histograms.GetAll2D() ){
@@ -147,7 +172,125 @@ TEST_CASE( "2D histogram" ){
             CHECK(_h == h);
         }
     }
+}
 
+TEST_CASE( "3D histogram" ){
+
+    cube = histograms.Create3D("cube", "cube title", 1024, 0, 1024, "x", 2048, 0, 2048, "y", 10, 0, 100, "z");
+    CHECK( cube != nullptr );
+
+    SUBCASE("Metadata") {
+        CHECK(cube->GetName() == "cube");
+        CHECK(cube->GetTitle() == "cube title");
+        CHECK(cube->GetAxisX().GetName() == "cube_xaxis");
+        CHECK(cube->GetAxisY().GetName() == "cube_yaxis");
+        CHECK(cube->GetAxisZ().GetName() == "cube_zaxis");
+        CHECK(cube->GetAxisX().GetTitle() == "x");
+        CHECK(cube->GetAxisY().GetTitle() == "y");
+        CHECK(cube->GetAxisZ().GetTitle() == "z");
+
+        CHECK(cube->GetAxisX().GetLeft() == 0);
+        CHECK(cube->GetAxisX().GetRight() == 1024);
+        CHECK(cube->GetAxisX().GetBinWidth() == 1.0);
+
+        CHECK(cube->GetAxisY().GetLeft() == 0);
+        CHECK(cube->GetAxisY().GetRight() == 2048);
+        CHECK(cube->GetAxisY().GetBinWidth() == 1.0);
+
+        CHECK(cube->GetAxisZ().GetLeft() == 0);
+        CHECK(cube->GetAxisZ().GetRight() == 100);
+        CHECK(cube->GetAxisZ().GetBinWidth() == 10.0);
+    }
+
+    SUBCASE("Number of bins"){
+        CHECK(cube->GetAxisX().GetBinCount() == 1024);
+        CHECK(cube->GetAxisX().GetBinCountAll() == cube->GetAxisX().GetBinCount() + 2);
+        CHECK(cube->GetAxisY().GetBinCount() == 2048);
+        CHECK(cube->GetAxisX().GetBinCountAll() == cube->GetAxisX().GetBinCount() + 2);
+        CHECK(cube->GetAxisZ().GetBinCount() == 10);
+        CHECK(cube->GetAxisX().GetBinCountAll() == cube->GetAxisX().GetBinCount() + 2);
+    }
+
+    SUBCASE("Fill and lookup"){
+        cube->Fill(83, 283.2, 29);
+        CHECK(cube->GetEntries() == 1);
+
+        cube->Fill(83.5, 283.1, 28);
+        CHECK(cube->GetEntries() == 2);
+        CHECK(cube->GetBinContent(cube->GetAxisX().FindBin(83.5),
+                                  cube->GetAxisY().FindBin(283.15),
+                                  cube->GetAxisZ().FindBin(28.5)) == 2);
+
+    }
+
+    SUBCASE("Fill and reset"){
+        CHECK(cube->GetEntries() == 0);
+
+        cube->Fill(83, 831., 28.1);
+        CHECK(cube->GetEntries() == 1);
+
+        cube->Reset();
+        CHECK(cube->GetEntries() == 0);
+    }
+
+    SUBCASE("Find 3D histogram"){
+        auto cube2 = histograms.Find3D("cube");
+        CHECK( cube2 != nullptr );
+        CHECK(cube2 == cube);
+
+        cube2->Fill(293., 192., 93.1);
+        CHECK(cube->GetEntries() == cube2->GetEntries());
+
+        cube2 = histograms.Find3D("blah");
+        CHECK(cube2 == nullptr);
+        CHECK(cube2 != cube);
+
+    }
+
+    SUBCASE("Get list of 3D histograms"){
+        auto cube2 = histograms.Create3D("cube2", "cube2", 2048, 0, 2048, "x2", 1024, -512, 512, "y2", 10, 0, 100, "z2");
+        cube2->Fill(93, 21.1, 31.1);
+        for ( auto &h : histograms.GetAll3D() ){
+            auto _h = histograms.Find3D(h->GetName());
+            CHECK(_h == h);
+        }
+    }
+}
+
+TEST_CASE("Histograms"){
+
+    // We expect there to be two of each type of histogram
+    CHECK(histograms.GetAll1D().size() == 2);
+    CHECK(histograms.GetAll2D().size() == 2);
+    CHECK(histograms.GetAll3D().size() == 2);
+
+    // None of the should be empty
+    for ( auto &h : histograms.GetAll1D() ){
+        h->Fill(182.);
+        CHECK(h->GetEntries() > 0);
+    }
+    for ( auto &h : histograms.GetAll2D() ){
+        h->Fill(182., 281.);
+        CHECK(h->GetEntries() > 0);
+    }
+    for ( auto &h : histograms.GetAll3D() ){
+        h->Fill(182., 281., 1.2);
+        CHECK(h->GetEntries() > 0);
+    }
+
+    // Reset all
+    histograms.ResetAll();
+
+    // None of the should be empty
+    for ( auto &h : histograms.GetAll1D() ){
+        CHECK(h->GetEntries() == 0);
+    }
+    for ( auto &h : histograms.GetAll2D() ){
+        CHECK(h->GetEntries() == 0);
+    }
+    for ( auto &h : histograms.GetAll3D() ){
+        CHECK(h->GetEntries() == 0);
+    }
 
 }
 
