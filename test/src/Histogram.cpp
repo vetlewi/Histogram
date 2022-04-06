@@ -261,6 +261,11 @@ TEST_CASE( "3D histogram" ){
 
 TEST_CASE("Write to MaMa files"){
 
+    // We expect there to be two of each type of histogram
+    REQUIRE(histograms.GetAll1D().size() > 0);
+    REQUIRE(histograms.GetAll2D().size() > 0);
+    REQUIRE(histograms.GetAll3D().size() > 0);
+
     SUBCASE("1D histograms") {
         // Write all 1D histograms
         for (auto &h: histograms.GetAll1D()) {
@@ -294,14 +299,31 @@ TEST_CASE("Write to MaMa files"){
         }
     }
 
+    // We expect there to be two of each type of histogram
+    REQUIRE(histograms.GetAll1D().size() > 0);
+    REQUIRE(histograms.GetAll2D().size() > 0);
+    REQUIRE(histograms.GetAll3D().size() > 0);
+
 }
 
 TEST_CASE("Histograms"){
 
     // We expect there to be two of each type of histogram
-    CHECK(histograms.GetAll1D().size() == 2);
-    CHECK(histograms.GetAll2D().size() == 2);
-    CHECK(histograms.GetAll3D().size() == 2);
+    if ( histograms.GetAll1D().size() == 0 ){
+        histograms.Create1D("hist", "hist", 193, 0, 832.1, "x");
+        histograms.Create1D("hist2", "hist2", 13, 0, 832.1, "x");
+    }
+    if ( histograms.GetAll2D().size() == 0 ){
+        histograms.Create2D("mat", "mat", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y");
+        histograms.Create2D("mat2", "mat2", 13, 0, 832.1, "x", 192, -1.2, 382.1, "y");
+    }
+    if ( histograms.GetAll3D().size() == 0 ){
+        histograms.Create3D("cube", "cube", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y", 10, -2, 3., "z");
+        histograms.Create3D("cube2", "cube2", 13, 0, 832.1, "x", 192, -1.2, 382.1, "y", 7, -3., 1., "z");
+    }
+    REQUIRE(histograms.GetAll1D().size() > 0);
+    REQUIRE(histograms.GetAll2D().size() > 0);
+    REQUIRE(histograms.GetAll3D().size() > 0);
 
     // None of the should be empty
     for ( auto &h : histograms.GetAll1D() ){
