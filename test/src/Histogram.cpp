@@ -29,7 +29,7 @@
 #include <histogram/Histogram1D.h>
 #include <histogram/Histogram2D.h>
 #include <histogram/Histogram3D.h>
-#include <MamaWriter.h>
+#include <histogram/MamaWriter.h>
 
 #include <iostream>
 #include <sstream>
