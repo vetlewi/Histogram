@@ -1,3 +1,24 @@
+// Copyright (c) 2022. Vetle Wegner Ingeberg/University of Oslo.
+// All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 //
 // Created by Vetle Wegner Ingeberg on 05/04/2022.
 //
@@ -70,12 +91,33 @@ TEST_CASE( "1D histogram" ){
         CHECK(hist->GetEntries() == 2);
     }
 
+    SUBCASE("Add"){
+        hist->Fill(32.1);
+        hist->Fill(45.1);
+
+        auto hist2 = histograms.Create1D("add", "add", 1024, 0, 1024, "x");
+        hist2->Fill(93.1);
+        hist2->Fill(1001.);
+
+        hist->Add(hist2, 1.0);
+        CHECK(hist->GetBinContent(hist->GetAxisX().FindBin(93.1)) != 0);
+
+        CHECK(hist->GetBinContent(hist->GetAxisX().FindBin(93.1)) ==
+              hist2->GetBinContent(hist2->GetAxisX().FindBin(93.1)));
+
+        CHECK(hist->GetBinContent(hist->GetAxisX().FindBin(1001.)) ==
+              hist2->GetBinContent(hist2->GetAxisX().FindBin(1001.)));
+
+    }
+
     SUBCASE("Over/underflow"){
         hist->Fill(-103020.2);
         CHECK(hist->GetBinContent(0) == 1);
 
         hist->Fill(929292.1);
         CHECK(hist->GetBinContent(hist->GetAxisX().GetBinCountAll()-1) == 1);
+
+        CHECK(hist->GetBinContent(200000) == 0);
     }
 
     SUBCASE("Find 1D histogram"){
@@ -142,11 +184,36 @@ TEST_CASE( "2D histogram" ){
 
     }
 
+    SUBCASE("Add"){
+        mat->Fill(32.1, 102.);
+        mat->Fill(45.1, 232.);
+
+        auto mat2 = histograms.Create2D("add", "add", 1024, 0, 1024, "x", 2048, 0, 2048, "y");
+        mat2->Fill(93.1, 1003);
+        mat2->Fill(1001., 1003.1);
+
+        mat->Add(mat2, 1.0);
+        CHECK(mat->GetBinContent(mat->GetAxisX().FindBin(93.1),
+                                 mat->GetAxisY().FindBin(1003)) != 0);
+
+        CHECK(mat->GetBinContent(mat->GetAxisX().FindBin(93.1),
+                                 mat->GetAxisY().FindBin(1003)) ==
+              mat2->GetBinContent(mat2->GetAxisX().FindBin(93.1),
+                                  mat2->GetAxisX().FindBin(1003)));
+
+        CHECK(mat->GetBinContent(mat->GetAxisX().FindBin(1001.),
+                                 mat->GetAxisY().FindBin(1003)) ==
+              mat2->GetBinContent(mat2->GetAxisX().FindBin(1001.),
+                                  mat2->GetAxisX().FindBin(1003)));
+
+    }
+
     SUBCASE("Fill and reset"){
         CHECK(mat->GetEntries() == 0);
 
         mat->Fill(83, 831.);
         CHECK(mat->GetEntries() == 1);
+        CHECK(mat->GetBinContent(20000, 3020010) == 0);
 
         mat->Reset();
         CHECK(mat->GetEntries() == 0);
@@ -233,6 +300,36 @@ TEST_CASE( "3D histogram" ){
 
         cube->Reset();
         CHECK(cube->GetEntries() == 0);
+    }
+
+    SUBCASE("Add"){
+        cube->Fill(32.1, 102., 2.);
+        cube->Fill(45.1, 232., 3.);
+
+        auto cube2 = histograms.Create3D("add", "add", 1024, 0, 1024, "x", 2048, 0, 2048, "y", 10, 0, 100, "z");
+        cube2->Fill(93.1, 1003, 81.);
+        cube2->Fill(1001., 1003.1, 93.);
+
+        cube->Add(cube2, 1.0);
+
+        CHECK(cube->GetBinContent(cube->GetAxisX().FindBin(93.1),
+                                  cube->GetAxisY().FindBin(1003),
+                                  cube->GetAxisZ().FindBin(81.)) != 0);
+
+        CHECK(cube->GetBinContent(cube->GetAxisX().FindBin(93.1),
+                                  cube->GetAxisY().FindBin(1003),
+                                  cube->GetAxisZ().FindBin(81.)) ==
+              cube2->GetBinContent(cube2->GetAxisX().FindBin(93.1),
+                                   cube2->GetAxisX().FindBin(1003),
+                                   cube2->GetAxisZ().FindBin(81.)));
+
+        CHECK(cube->GetBinContent(cube->GetAxisX().FindBin(1001.),
+                                  cube->GetAxisY().FindBin(1003.1),
+                                  cube->GetAxisZ().FindBin(93.)) ==
+              cube2->GetBinContent(cube2->GetAxisX().FindBin(1001.),
+                                   cube2->GetAxisX().FindBin(1003.1),
+                                   cube2->GetAxisZ().FindBin(93.)));
+
     }
 
     SUBCASE("Find 3D histogram"){
