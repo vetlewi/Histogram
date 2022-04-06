@@ -8,8 +8,10 @@
 #include <Histogram1D.h>
 #include <Histogram2D.h>
 #include <Histogram3D.h>
+#include <MamaWriter.h>
 
 #include <iostream>
+#include <sstream>
 
 TEST_CASE("Histogram version"){
     static_assert(std::string_view(HISTOGRAM_VERSION) == std::string_view("1.0"));
@@ -255,6 +257,43 @@ TEST_CASE( "3D histogram" ){
             CHECK(_h == h);
         }
     }
+}
+
+TEST_CASE("Write to MaMa files"){
+
+    SUBCASE("1D histograms") {
+        // Write all 1D histograms
+        for (auto &h: histograms.GetAll1D()) {
+            std::stringstream str;
+            CHECK(str.str().size() == 0);
+            CHECK(h != nullptr);
+            CHECK(MamaWriter::Write(str, h) == 0);
+            CHECK(str.str().size() > 0);
+        }
+    }
+
+    SUBCASE("2D histograms") {
+        // Write all 2D histograms
+        for (auto &h: histograms.GetAll2D()) {
+            std::stringstream str;
+            CHECK(str.str().size() == 0);
+            CHECK(h != nullptr);
+            CHECK(MamaWriter::Write(str, h) == 0);
+            CHECK(str.str().size() > 0);
+        }
+    }
+
+    SUBCASE("3D histograms") {
+        // Write all 3D histograms - this will throw
+        for (auto &h: histograms.GetAll3D()) {
+            std::stringstream str;
+            CHECK(str.str().size() == 0);
+            CHECK(h != nullptr);
+            CHECK_THROWS(MamaWriter::Write(str, h));
+            CHECK(str.str().size() == 0);
+        }
+    }
+
 }
 
 TEST_CASE("Histograms"){

@@ -15,9 +15,11 @@
 
 class Histogram1D;
 class Histogram2D;
+class Histogram3D;
 
 typedef Histogram1D* Histogram1Dp;
 typedef Histogram2D* Histogram2Dp;
+typedef Histogram3D* Histogram3Dp;
 
 /*!
  * \class MamaWriter
@@ -32,14 +34,20 @@ public:
   //! Write a single 1D histogram in MAMA format.
   /*! \return 0 if okay, <0 if error
    */
-  static int Write(std::ofstream& out, /*!< The output stream to write to. */
+  static int Write(std::ostream& out, /*!< The output stream to write to. */
                    Histogram1Dp h      /*!< The histogram to write. */);
 
   //! Write a single 2D histogram in MAMA format.
   /*! \return 0 if okay, <0 if error
    */
-  static int Write(std::ofstream& out, /*!< The output stream to write to. */
+  static int Write(std::ostream& out, /*!< The output stream to write to. */
                    Histogram2Dp h      /*!< The histogram to write. */);
+
+    //! Write a single 3D histogram in MAMA format.
+    /*! Throws because not implemented.
+     */
+    static int Write(std::ostream& out, /*!< The output stream to write to. */
+                     Histogram3Dp h      /*!< The histogram to write. */);
 
 };
 

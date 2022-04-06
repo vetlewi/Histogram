@@ -25,6 +25,19 @@ std::string ioprintf(const char* format, ...)
 __attribute__ ((format (printf, 1, 2)));
 
 
+std::string ioprintf(const char* format, ...)
+{
+    char message[512];
+
+    va_list ap;
+    va_start(ap, format);
+    vsnprintf(message, sizeof(message), format, ap);
+    va_end(ap);
+
+    return std::string(message);
+}
+// ########################################################################
+
 //! Encode the current date and time like '22-Mar-94 HH:MM:SS'
 /*! \return a string with the date as text
  */
@@ -84,7 +97,7 @@ static void spectrum_write_header(std::ostream& fp, const std::string& comment,
 
 // ########################################################################
 
-int MamaWriter::Write(std::ofstream& fp, Histogram1Dp h)
+int MamaWriter::Write(std::ostream& fp, Histogram1Dp h)
 {
   const Axis& xax = h->GetAxisX();
   float cal[3] = { (float)xax.GetLeft(), (float)xax.GetBinWidth(), 0 };
@@ -98,7 +111,7 @@ int MamaWriter::Write(std::ofstream& fp, Histogram1Dp h)
 
 // ########################################################################
 
-int MamaWriter::Write(std::ofstream& fp, Histogram2Dp h)
+int MamaWriter::Write(std::ostream& fp, Histogram2Dp h)
 {
   const Axis& xax = h->GetAxisX();
   const Axis& yax = h->GetAxisY();
@@ -116,3 +129,12 @@ int MamaWriter::Write(std::ofstream& fp, Histogram2Dp h)
 
   return 0;
 }
+
+// ########################################################################
+
+int MamaWriter::Write(std::ostream&, Histogram3Dp)
+{
+    throw std::runtime_error("MaMa format does not support 3D histograms");
+}
+
+// ########################################################################
