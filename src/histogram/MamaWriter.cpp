@@ -21,6 +21,9 @@
 #include <ctime>
 #include <string>
 
+#include <cstdarg>
+#include <cstdio>
+
 std::string ioprintf(const char* format, ...)
 __attribute__ ((format (printf, 1, 2)));
 
