@@ -448,18 +448,37 @@ TEST_CASE("Histograms"){
         CHECK(h->GetEntries() > 0);
     }
 
-    // Reset all
-    histograms.ResetAll();
+    // Test merging
+    Histograms histograms2;
+    auto hist2 = histograms2.Create1D("hist", "hist", 193, 0, 832.1, "x");
+    REQUIRE(hist2 != nullptr);
+    hist2->Fill(252.);
+    histograms2.Create1D("hist3", "hist3", 13, 0, 832.1, "x");
+    histograms2.Create2D("mat", "mat", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y")->Fill(252, -1.2);
+    histograms2.Create2D("mat3", "mat3", 13, 0, 832.1, "x", 192, -1.2, 382.1, "y");
+    histograms2.Create3D("cube", "cube", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y", 10, -2, 3., "z");
+    histograms2.Create3D("cube3", "cube3", 13, 0, 832.1, "x", 192, -1.2, 382.1, "y", 7, -3., 1., "z");
 
-    // None of the should be empty
-    for ( auto &h : histograms.GetAll1D() ){
-        CHECK(h->GetEntries() == 0);
+    SUBCASE("Merge"){
+        hist = histograms.Find1D("hist");
+        auto old_entries = hist->GetEntries();
+        histograms.Merge(histograms2);
+        CHECK(hist->GetEntries() == old_entries + hist2->GetEntries());
     }
-    for ( auto &h : histograms.GetAll2D() ){
-        CHECK(h->GetEntries() == 0);
-    }
-    for ( auto &h : histograms.GetAll3D() ){
-        CHECK(h->GetEntries() == 0);
+
+    SUBCASE("ResetAll") {
+        histograms.ResetAll();
+
+        // None of the should be empty
+        for (auto &h: histograms.GetAll1D()) {
+            CHECK(h->GetEntries() == 0);
+        }
+        for (auto &h: histograms.GetAll2D()) {
+            CHECK(h->GetEntries() == 0);
+        }
+        for (auto &h: histograms.GetAll3D()) {
+            CHECK(h->GetEntries() == 0);
+        }
     }
 
 }

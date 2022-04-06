@@ -77,6 +77,9 @@ void Histogram1D::Add(const Histogram1Dp other, data_t scale)
 
   for(Axis::index_t i=0; i < xaxis.GetBinCountAll(); ++i)
     data[i] += scale * other->data[i];
+
+  // Update total count
+  entries += scale * other->entries;
 }
 
 // ########################################################################
