@@ -25,10 +25,10 @@
 
 #include <doctest/doctest.h>
 #include <histogram/version.h>
-#include <Histograms.h>
-#include <Histogram1D.h>
-#include <Histogram2D.h>
-#include <Histogram3D.h>
+#include <histogram/Histograms.h>
+#include <histogram/Histogram1D.h>
+#include <histogram/Histogram2D.h>
+#include <histogram/Histogram3D.h>
 #include <MamaWriter.h>
 
 #include <iostream>

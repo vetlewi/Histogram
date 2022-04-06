@@ -49,7 +49,7 @@ add_library(${PROJECT_NAME} ${headers} ${sources})
 set_target_properties(Histogram PROPERTIES CXX_STANDARD 17)
 
 target_include_directories(Histogram PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/histogram>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
 )
 
