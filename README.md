@@ -1,0 +1,2 @@
+# Histogram [![codecov](https://codecov.io/gh/vetlewi/Histogram/branch/main/graph/badge.svg?token=Bx4FLtjgAE)](https://codecov.io/gh/vetlewi/Histogram)
+This package contains a simple library to provide a simple histogram data type.
