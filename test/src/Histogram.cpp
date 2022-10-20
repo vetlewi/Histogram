@@ -41,10 +41,10 @@ TEST_CASE("Histogram version"){
 
 TEST_SUITE_BEGIN( "Histograms" );
 
-Histograms histograms;
-Histogram1Dp hist;
-Histogram2Dp mat;
-Histogram3Dp cube;
+static Histograms histograms;
+static Histogram1Dp hist;
+static Histogram2Dp mat;
+static Histogram3Dp cube;
 
 TEST_CASE( "1D histogram" ){
 

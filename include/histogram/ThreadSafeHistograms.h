@@ -83,12 +83,6 @@ private:
         }
     }
 
-    void force_flush()
-    {
-        std::lock_guard lock(mutex);
-        flush();
-    }
-
     inline void check_buffer()
     {
         if ( buffer.size() < min_buffer )
@@ -116,18 +110,19 @@ public:
         force_flush();
     }
 
-    /*template<class... Args>
-    void Fill(Args... args){
-        buffer.emplace_back(std::forward<Args>(args)...);
-        if ( buffer.size() < min_buffer )
-            return;
-        else if ( buffer.size() < max_buffer )
-            try_flush();
-        else
-            force_flush();
-    }*/
+    void force_flush()
+    {
+        std::lock_guard lock(mutex);
+        flush();
+    }
 
-    void Fill(const Axis::bin_t &x, const Axis::index_t &n = 1)
+    void Fill(const std::initializer_list<Axis::bin_t> &coord, const Axis::index_t &n = 1)
+    {
+        buffer.push_back({coord, n});
+        check_buffer();
+    }
+
+    /*void Fill(const Axis::bin_t &x, const Axis::index_t &n = 1)
     {
         buffer.push_back({x, n});
         check_buffer();
@@ -143,7 +138,7 @@ public:
     {
         buffer.push_back({x, y, z, n});
         check_buffer();
-    }
+    }*/
 
 };
 

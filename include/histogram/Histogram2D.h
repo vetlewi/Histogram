@@ -45,6 +45,7 @@ public:
       Axis::bin_t x, y;
       data_t w;
       buf_t(Axis::bin_t xx, Axis::bin_t yy, data_t ww) : x(xx), y(yy), w(ww) { }
+      buf_t(std::initializer_list<Axis::bin_t> coord, data_t ww) : x( *( coord.begin() ) ), y( *(coord.begin() + 1) ), w( ww ){ }
   };
   typedef std::vector<buf_t> buffer_t;
 
