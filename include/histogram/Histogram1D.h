@@ -46,7 +46,9 @@ public:
         Axis::bin_t x;
         data_t w;
         buf_t(Axis::bin_t xx, data_t ww) : x( xx ), w(ww) { }
-        buf_t(std::initializer_list<Axis::bin_t> coord, data_t ww) : x( *std::data(coord) ), w( ww ){ }
+
+        template<typename V>
+        buf_t(std::initializer_list<V> coord, data_t ww) : x( *std::data(coord) ), w( ww ){ }
     };
     typedef std::vector<buf_t> buffer_t;
 

@@ -63,7 +63,7 @@ TEST_CASE( "Thread safe 1D histogram" ){
     }
 
     SUBCASE("Fill and lookup"){
-        ts_hist.Fill({83});
+        ts_hist.Fill(83);
         CHECK(hist->GetEntries() == 0);
 
         hist->Fill(83.5);
@@ -106,10 +106,10 @@ TEST_CASE( "Thread safe 2D histogram" )
     }
 
     SUBCASE("Fill and lookup") {
-        ts_mat.Fill({83, 283.2});
+        ts_mat.Fill(83, 283.2);
         CHECK(mat->GetEntries() == 0);
 
-        ts_mat.Fill({83.5, 283.1});
+        ts_mat.Fill(83.5, 283.1);
         ts_mat.force_flush();
         CHECK(mat->GetEntries() == 2);
         CHECK(mat->GetBinContent(mat->GetAxisX().FindBin(83.5),
@@ -158,10 +158,10 @@ TEST_CASE( "Thread safe 3D histogram" ){
         }
 
         SUBCASE("Fill and lookup"){
-        ts_cube.Fill({83, 283.2, 29});
+        ts_cube.Fill(83, 283.2, 29);
         CHECK(cube->GetEntries() == 0);
 
-        ts_cube.Fill({83.5, 283.1, 28});
+        ts_cube.Fill(83.5, 283.1, 28);
         ts_cube.force_flush();
         CHECK(cube->GetEntries() == 2);
         CHECK(cube->GetBinContent(

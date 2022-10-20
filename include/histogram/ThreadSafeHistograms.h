@@ -65,8 +65,10 @@ private:
 
     const size_t min_buffer;
     const size_t max_buffer;
+protected:
     typename T::buffer_t buffer;
 
+private:
     void flush()
     {
         for ( auto &element : buffer ){
@@ -83,6 +85,7 @@ private:
         }
     }
 
+protected:
     inline void check_buffer()
     {
         if ( buffer.size() < min_buffer )
@@ -116,17 +119,37 @@ public:
         flush();
     }
 
-    void Fill(const std::initializer_list<Axis::bin_t> &coord, const Axis::index_t &n = 1)
+    /*template<typename V>
+    void Fill(const std::initializer_list<V> &coord, const Axis::index_t &n = 1)
     {
         buffer.push_back({coord, n});
         check_buffer();
-    }
+    }*/
 
-    /*void Fill(const Axis::bin_t &x, const Axis::index_t &n = 1)
+};
+
+class ThreadSafeHistogram1D : public ThreadSafeHistogram<Histogram1D>
+{
+public:
+
+    ThreadSafeHistogram1D(std::mutex &_mutex, Histogram1D *_histogram,
+                          const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
+        : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer ){}
+
+    void Fill(const Axis::bin_t &x, const Axis::index_t &n = 1)
     {
         buffer.push_back({x, n});
         check_buffer();
     }
+};
+
+class ThreadSafeHistogram2D : public ThreadSafeHistogram<Histogram2D>
+{
+public:
+
+    ThreadSafeHistogram2D(std::mutex &_mutex, Histogram2D *_histogram,
+                          const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
+            : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer ){}
 
     void Fill(const Axis::bin_t &x, const Axis::bin_t &y, const Axis::index_t &n = 1)
     {
@@ -134,17 +157,25 @@ public:
         check_buffer();
     }
 
-    void Fill(const Axis::bin_t &x, const Axis::bin_t &y, const Axis::bin_t &z, const Axis::index_t &n = 1)
+};
+
+class ThreadSafeHistogram3D : public ThreadSafeHistogram<Histogram3D>
+{
+public:
+    ThreadSafeHistogram3D(std::mutex &_mutex, Histogram3D *_histogram,
+                          const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
+            : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer ){}
+
+    void Fill(const Axis::bin_t &x, const Axis::bin_t &y,  const Axis::bin_t &z, const Axis::index_t &n = 1)
     {
         buffer.push_back({x, y, z, n});
         check_buffer();
-    }*/
-
+    }
 };
 
-typedef ThreadSafeHistogram<Histogram1D> ThreadSafeHistogram1D;
-typedef ThreadSafeHistogram<Histogram2D> ThreadSafeHistogram2D;
-typedef ThreadSafeHistogram<Histogram3D> ThreadSafeHistogram3D;
+//typedef ThreadSafeHistogram<Histogram1D> ThreadSafeHistogram1D;
+//typedef ThreadSafeHistogram<Histogram2D> ThreadSafeHistogram2D;
+//typedef ThreadSafeHistogram<Histogram3D> ThreadSafeHistogram3D;
 
 class ThreadSafeHistograms
 {
