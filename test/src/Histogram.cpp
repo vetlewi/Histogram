@@ -35,8 +35,8 @@
 #include <sstream>
 
 TEST_CASE("Histogram version"){
-    static_assert(std::string_view(HISTOGRAM_VERSION) == std::string_view("1.0.1"));
-    CHECK(std::string(HISTOGRAM_VERSION) == std::string("1.0.1"));
+    static_assert(std::string_view(HISTOGRAM_VERSION) == std::string_view("1.1.0"));
+    CHECK(std::string(HISTOGRAM_VERSION) == std::string("1.1.0"));
 }
 
 TEST_SUITE_BEGIN( "Histograms" );
