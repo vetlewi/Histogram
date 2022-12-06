@@ -15,7 +15,7 @@ include(../cmake/tools.cmake)
 
 include(../cmake/CPM.cmake)
 
-CPMAddPackage("gh:onqtam/doctest@2.4.8")
+CPMAddPackage("gh:doctest/doctest@2.4.9")
 CPMAddPackage("gh:TheLartians/Format.cmake@1.7.3")
 
 if(TEST_INSTALLED_VERSION)
@@ -32,6 +32,7 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} doctest::doctest OCL::Histogram)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
+target_compile_definitions(${PROJECT_NAME} PRIVATE VERSION="${Histogram_VERSION}")
 
 # enable compiler warnings
 if(NOT TEST_INSTALLED_VERSION)

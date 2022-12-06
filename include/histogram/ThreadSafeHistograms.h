@@ -97,7 +97,6 @@ protected:
     }
 
 public:
-
     ThreadSafeHistogram(std::mutex &_mutex, T *_histogram,
                         const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
         : mutex( _mutex )
@@ -106,6 +105,15 @@ public:
         , max_buffer( _max_buffer )
     {
         buffer.reserve( max_buffer );
+    }
+
+    ThreadSafeHistogram(ThreadSafeHistogram &&other)
+        : mutex( other.mutex )
+        , histogram( other.histogram )
+        , min_buffer( other.min_buffer )
+        , max_buffer( other.max_buffer )
+        , buffer( std::move(other.buffer) )
+    {
     }
 
     ~ThreadSafeHistogram()
@@ -119,19 +127,11 @@ public:
         flush();
     }
 
-    /*template<typename V>
-    void Fill(const std::initializer_list<V> &coord, const Axis::index_t &n = 1)
-    {
-        buffer.push_back({coord, n});
-        check_buffer();
-    }*/
-
 };
 
 class ThreadSafeHistogram1D : public ThreadSafeHistogram<Histogram1D>
 {
 public:
-
     ThreadSafeHistogram1D(std::mutex &_mutex, Histogram1D *_histogram,
                           const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
         : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer ){}
@@ -172,10 +172,6 @@ public:
         check_buffer();
     }
 };
-
-//typedef ThreadSafeHistogram<Histogram1D> ThreadSafeHistogram1D;
-//typedef ThreadSafeHistogram<Histogram2D> ThreadSafeHistogram2D;
-//typedef ThreadSafeHistogram<Histogram3D> ThreadSafeHistogram3D;
 
 class ThreadSafeHistograms
 {
@@ -230,13 +226,13 @@ public:
 
     ~ThreadSafeHistograms()
     {
-        for ( auto hist : map1d ){
+        for ( auto &hist : map1d ){
             delete hist.second;
         }
-        for ( auto hist : map2d ){
+        for ( auto &hist : map2d ){
             delete hist.second;
         }
-        for ( auto hist : map3d ){
+        for ( auto &hist : map3d ){
             delete hist.second;
         }
     }

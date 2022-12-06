@@ -6,3 +6,7 @@ If you use CPM the library are easily imported by
 ````cmake
 CPMAddPackage("gh:vetlewi/Histogram@1.1.1")
 ````
+
+### TODO:
+There is the need to easily make construct an array of histograms.
+A simpler way of doing this should be considered.

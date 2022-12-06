@@ -83,7 +83,7 @@ TH1p RootWriter::CreateTH1(Histogram1Dp h)
   TAxis* ryax = r->GetYaxis();
 #if ROOT1D_YTITLE
   char buf[8];
-    std::sprintf(buf, "%.2f", xax.GetBinWidth());
+    std::snprintf(buf, 8, "%.2f", xax.GetBinWidth());
     std::string ytitle = "Counts/" + std::string(buf);
     ryax->SetTitle(ytitle.c_str());
     ryax->SetTitleSize(0.03);

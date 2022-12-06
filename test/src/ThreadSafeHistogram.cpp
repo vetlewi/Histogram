@@ -54,7 +54,6 @@ TEST_CASE( "Thread safe 1D histogram" ){
         CHECK(hist->GetAxisX().GetLeft() == 0);
         CHECK(hist->GetAxisX().GetRight() == 1024);
         CHECK(hist->GetAxisX().GetBinWidth() == 1.0);
-
     }
 
     SUBCASE("Number of bins"){
