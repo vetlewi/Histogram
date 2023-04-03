@@ -64,8 +64,13 @@ public:
   //! Deallocate memory.
   ~Histogram1D();
 
-  //! Add another histogram.
-  void Add(const Histogram1Dp other, data_t scale);
+  /*!
+     * Sum two histograms together.
+     * Adds the counts of histogram `other` to the current
+     * histogram weighted by `scale`.
+     * Throws if the binning of the two are different.
+     */
+  void Add(const Histogram1Dp other, data_t scale = 1.0);
 
   //! Increment a histogram bin.
   void Fill(Axis::bin_t x,  /*!< The x axis value. */

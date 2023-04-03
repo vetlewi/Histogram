@@ -41,12 +41,10 @@ TEST_CASE("Histogram version"){
 
 TEST_SUITE_BEGIN( "Histograms" );
 
-static Histograms histograms;
-static Histogram1Dp hist;
-static Histogram2Dp mat;
-static Histogram3Dp cube;
-
 TEST_CASE( "1D histogram" ){
+
+    Histograms histograms;
+    Histogram1Dp hist;
 
     hist = histograms.Create1D("hist", "hist title", 1024, 0, 1024, "x");
     CHECK( hist != nullptr );
@@ -108,6 +106,9 @@ TEST_CASE( "1D histogram" ){
         CHECK(hist->GetBinContent(hist->GetAxisX().FindBin(1001.)) ==
               hist2->GetBinContent(hist2->GetAxisX().FindBin(1001.)));
 
+        auto hist3 = histograms.Create1D("add_fail", "add_fail", 192, 0, 192, "x");
+        CHECK_THROWS(hist->Add(hist3, 1.0));
+
     }
 
     SUBCASE("Over/underflow"){
@@ -145,6 +146,9 @@ TEST_CASE( "1D histogram" ){
 }
 
 TEST_CASE( "2D histogram" ){
+
+    Histograms histograms;
+    Histogram2Dp mat;
 
     mat = histograms.Create2D("mat", "mat title", 1024, 0, 1024, "x", 2048, 0, 2048, "y");
     CHECK( mat != nullptr );
@@ -206,6 +210,9 @@ TEST_CASE( "2D histogram" ){
               mat2->GetBinContent(mat2->GetAxisX().FindBin(1001.),
                                   mat2->GetAxisX().FindBin(1003)));
 
+        auto mat3 = histograms.Create2D("add_fail", "add_fail", 192, 0, 192, "x", 512, 0, 512, "y");
+        CHECK_THROWS(mat->Add(mat3, 1.0));
+
     }
 
     SUBCASE("Fill and reset"){
@@ -244,6 +251,9 @@ TEST_CASE( "2D histogram" ){
 }
 
 TEST_CASE( "3D histogram" ){
+
+    Histograms histograms;
+    Histogram3Dp cube;
 
     cube = histograms.Create3D("cube", "cube title", 1024, 0, 1024, "x", 2048, 0, 2048, "y", 10, 0, 100, "z");
     CHECK( cube != nullptr );
@@ -330,6 +340,9 @@ TEST_CASE( "3D histogram" ){
                                    cube2->GetAxisX().FindBin(1003.1),
                                    cube2->GetAxisZ().FindBin(93.)));
 
+        auto cube3 = histograms.Create3D("add_fail", "add_fail", 192, 0, 192, "x", 512, 0, 512, "y", 5, 0, 5, "z");
+        CHECK_THROWS(cube->Add(cube3, 1.0));
+
     }
 
     SUBCASE("Find 3D histogram"){
@@ -357,6 +370,8 @@ TEST_CASE( "3D histogram" ){
 }
 
 TEST_CASE("Write to MaMa files"){
+
+    Histograms histograms;
 
     // We expect there to be two of each type of histogram
     if ( histograms.GetAll1D().size() == 0 ){
@@ -417,6 +432,8 @@ TEST_CASE("Write to MaMa files"){
 
 TEST_CASE("Histograms"){
 
+    Histograms histograms;
+
     // We expect there to be two of each type of histogram
     if ( histograms.GetAll1D().size() == 0 ){
         histograms.Create1D("hist", "hist", 193, 0, 832.1, "x");
@@ -430,6 +447,14 @@ TEST_CASE("Histograms"){
         histograms.Create3D("cube", "cube", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y", 10, -2, 3., "z");
         histograms.Create3D("cube2", "cube2", 13, 0, 832.1, "x", 192, -1.2, 382.1, "y", 7, -3., 1., "z");
     }
+
+    SUBCASE("Multiple histograms with similar name"){
+        CHECK_THROWS(histograms.Create1D("hist", "hist", 193, 0, 832.1, "x"));
+        CHECK_THROWS(histograms.Create2D("mat", "mat", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y"));
+        CHECK_THROWS(histograms.Create3D("cube", "cube", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y", 10, -2, 3., "z"));
+    }
+
+
     REQUIRE(histograms.GetAll1D().size() > 0);
     REQUIRE(histograms.GetAll2D().size() > 0);
     REQUIRE(histograms.GetAll3D().size() > 0);
@@ -460,7 +485,8 @@ TEST_CASE("Histograms"){
     histograms2.Create3D("cube3", "cube3", 13, 0, 832.1, "x", 192, -1.2, 382.1, "y", 7, -3., 1., "z");
 
     SUBCASE("Merge"){
-        hist = histograms.Find1D("hist");
+        auto hist = histograms.Find1D("hist");
+        hist2 = histograms2.Find1D("hist");
         auto old_entries = hist->GetEntries();
         histograms.Merge(histograms2);
         CHECK(hist->GetEntries() == old_entries + hist2->GetEntries());

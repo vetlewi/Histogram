@@ -97,7 +97,7 @@ void Histogram3D::Add(const Histogram3Dp &other, data_t scale)
         || other->GetAxisZ().GetLeft() != zaxis.GetLeft()
         || other->GetAxisZ().GetRight() != zaxis.GetRight()
         || other->GetAxisZ().GetBinCount() != zaxis.GetBinCount() )
-        return;
+        throw std::runtime_error("Histograms '"+GetName()+"' and '"+other->GetName()+"' does not have the same dimentions.");
 
 #ifdef H3D_USE_BUFFER
     other->FlushBuffer();

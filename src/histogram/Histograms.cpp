@@ -53,6 +53,9 @@ Histogram1Dp Histograms::Create1D( const std::string& name, const std::string& t
                                    Axis::index_t c, Axis::bin_t l, Axis::bin_t r, const std::string& xtitle,
                                    const std::string& path)
 {
+  // Check if already exist, throw if so
+  if ( Find1D(name) != nullptr )
+    throw std::runtime_error("Histogram with name '"+name+"' already exists");
   Histogram1Dp h(new Histogram1D(name, title, c, l, r, xtitle, path));
   map1d[ name ] = h;
   return h;
@@ -66,6 +69,8 @@ Histogram2Dp Histograms::Create2D( const std::string& name, const std::string& t
                                    const std::string& path)
 {
   Histogram2Dp h(new Histogram2D(name, title, ch1, l1, r1, xtitle, ch2, l2, r2, ytitle, path));
+  if ( Find2D(name) != nullptr )
+    throw std::runtime_error("Histogram with name '"+name+"' already exists");
   map2d[ name ] = h;
   return h;
 }
@@ -78,6 +83,8 @@ Histogram3Dp Histograms::Create3D( const std::string& name, const std::string& t
                                    Axis::index_t ch3, Axis::bin_t l3, Axis::bin_t r3, const std::string& ztitle,
                                    const std::string& path)
 {
+    if ( Find3D(name) != nullptr )
+      throw std::runtime_error("Histogram with name '"+name+"' already exists");
     Histogram3Dp h(new Histogram3D(name, title, ch1, l1, r1, xtitle, ch2, l2, r2, ytitle, ch3, l3, r3, ztitle, path));
     map3d[ name ] = h;
     return h;
