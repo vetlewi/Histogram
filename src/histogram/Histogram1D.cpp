@@ -68,7 +68,7 @@ void Histogram1D::Add(const Histogram1Dp other, data_t scale)
       || other->GetAxisX().GetLeft() != xaxis.GetLeft()
       || other->GetAxisX().GetRight() != xaxis.GetRight()
       || other->GetAxisX().GetBinCount() != xaxis.GetBinCount() )
-    return;
+    throw std::runtime_error("Histograms '"+GetName()+"' and '"+other->GetName()+"' does not have the same dimentions.");
 
 #ifdef H1D_USE_BUFFER
   other->FlushBuffer();

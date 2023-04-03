@@ -87,7 +87,7 @@ void Histogram2D::Add(const Histogram2Dp &other, data_t scale)
       || other->GetAxisY().GetLeft() != yaxis.GetLeft()
       || other->GetAxisY().GetRight() != yaxis.GetRight()
       || other->GetAxisY().GetBinCount() != yaxis.GetBinCount() )
-    return;
+    throw std::runtime_error("Histograms '"+GetName()+"' and '"+other->GetName()+"' does not have the same dimentions.");
 
 #ifdef H2D_USE_BUFFER
   other->FlushBuffer();
