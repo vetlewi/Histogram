@@ -447,6 +447,14 @@ TEST_CASE("Histograms"){
         histograms.Create3D("cube", "cube", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y", 10, -2, 3., "z");
         histograms.Create3D("cube2", "cube2", 13, 0, 832.1, "x", 192, -1.2, 382.1, "y", 7, -3., 1., "z");
     }
+
+    SUBCASE("Multiple histograms with similar name"){
+        CHECK_THROWS(histograms.Create1D("hist", "hist", 193, 0, 832.1, "x"));
+        CHECK_THROWS(histograms.Create2D("mat", "mat", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y"));
+        CHECK_THROWS(histograms.Create3D("cube", "cube", 193, 0, 832.1, "x", 192, -10.2, 382.1, "y", 10, -2, 3., "z"));
+    }
+
+
     REQUIRE(histograms.GetAll1D().size() > 0);
     REQUIRE(histograms.GetAll2D().size() > 0);
     REQUIRE(histograms.GetAll3D().size() > 0);
