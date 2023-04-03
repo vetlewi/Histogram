@@ -39,10 +39,10 @@ void RootWriter::Navigate(Named *named, TFile *file)
 
 // ########################################################################
 
-void RootWriter::Write( Histograms& histograms,
-                        const std::string& filename )
+void RootWriter::Write(Histograms& histograms, const char *filename,
+                       const char *title, const char *options)
 {
-  TFile outfile( filename.c_str(), "recreate" );
+  TFile outfile(filename, options, title);
 
   Histograms::list1d_t list1d = histograms.GetAll1D();
   for(auto & it : list1d) {

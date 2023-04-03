@@ -57,8 +57,10 @@ public:
   /*! All of the histograms in the list will be written. The output
    *  file will be overwritten if it exists.
    */
-  static void Write( Histograms& histograms,     /*!< The histogram list. */
-                     const std::string& filename /*!< The output filename. */);
+  static void Write( Histograms& histograms,          /*!< The histogram list.      */
+                     const char *filename,            /*!< The output filename.     */
+                     const char *title = "",          /*!< Title of the ROOT file.  */
+                     const char *options = "RECREATE" /*!< ROOT file options.       */);
 
   //! Create a ROOT histogram from a Histogram1D.
   /*! \return the ROOT 1D histogram.
