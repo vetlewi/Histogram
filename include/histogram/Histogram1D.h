@@ -124,7 +124,7 @@ private:
   const Axis xaxis;
 
   //! The number of entries in the histogram.
-  int entries;
+  size_t entries;
 
   //! The bin contents, including the overflow bins.
   data_t *data;

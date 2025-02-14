@@ -150,7 +150,7 @@ private:
   const Axis yaxis;
 
   //! The number of entries in the histogram.
-  int entries;
+  size_t entries;
 
 #ifndef USE_ROWS
   //! The bin contents, including the overflow bins.
