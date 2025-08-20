@@ -5,7 +5,7 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 include(cmake/CPM.cmake)
 
 # PackageProject.cmake will be used to make our target installable
-CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.8.0")
+CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.13.0")
 
 find_package(Threads REQUIRED)
 find_package(ROOT COMPONENTS RIO Hist)
@@ -46,7 +46,7 @@ endif()
 
 add_library(${PROJECT_NAME} ${headers} ${sources})
 
-set_target_properties(Histogram PROPERTIES CXX_STANDARD 17)
+set_target_properties(Histogram PROPERTIES CXX_STANDARD 17 POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(Histogram
     PUBLIC
