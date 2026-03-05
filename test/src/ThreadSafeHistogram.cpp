@@ -175,6 +175,11 @@ TEST_CASE( "Thread safe 3D histogram" ){
 
 // Test will fail. To be implemented
 TEST_CASE( "Force flush all" ) {
+    ThreadSafeHistogramRegister hist_register;
+    hist_register.register1D(&ts_hist);
+    hist_register.register2D(&ts_mat);
+    hist_register.register3D(&ts_cube);
+
     for ( int i = 0 ; i < 100 ; ++i ) {
         ts_hist.Fill(92.3 + i);
         ts_mat.Fill(92.3 + i, 283.2-i);
@@ -182,7 +187,7 @@ TEST_CASE( "Force flush all" ) {
     }
 
 
-    histograms.force_flush();
+    hist_register.force_flush();
 
     CHECK(hist->GetEntries() == 102);
     CHECK(mat->GetEntries() == 102);
