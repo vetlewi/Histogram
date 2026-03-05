@@ -1,4 +1,4 @@
-// Copyright (c) 2022. Vetle Wegner Ingeberg/University of Oslo.
+// Copyright (c) 2022, 2026. Vetle Wegner Ingeberg/University of Oslo.
 // All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -41,16 +41,25 @@ static ThreadSafeHistograms histograms;
 ThreadSafeHistogram1D ts_hist = histograms.Create1D("hist", "hist title", 1024, 0, 1024, "x");
 Histogram1Dp hist = histograms.GetHistograms().Find1D("hist");
 
+ThreadSafeHistogram1D ts_hist2 = histograms.Create1D("hist2", "hist title", 1024, 0, 1024, "x");
+Histogram1Dp hist2 = histograms.GetHistograms().Find1D("hist2");
+
 ThreadSafeHistogram2D ts_mat = histograms.Create2D("mat", "mat title", 1024, 0, 1024, "x", 2048, 0, 2048, "y");
 Histogram2Dp mat = histograms.GetHistograms().Find2D("mat");
+
+ThreadSafeHistogram2D ts_mat2 = histograms.Create2D("mat2", "mat title", 1024, 0, 1024, "x", 2048, 0, 2048, "y");
+Histogram2Dp mat2 = histograms.GetHistograms().Find2D("mat2");
 
 ThreadSafeHistogram3D ts_cube = histograms.Create3D("cube", "cube title", 1024, 0, 1024, "x", 2048, 0, 2048, "y", 10, 0, 100, "z");
 Histogram3Dp cube = histograms.GetHistograms().Find3D("cube");
 
+ThreadSafeHistogram3D ts_cube2 = histograms.Create3D("cube2", "cube title", 1024, 0, 1024, "x", 2048, 0, 2048, "y", 10, 0, 100, "z");
+Histogram3Dp cube2 = histograms.GetHistograms().Find3D("cube2");
+
+
+
+
 TEST_CASE( "Thread safe 1D histogram" ){
-
-
-
     CHECK( hist != nullptr );
 
     SUBCASE("Metadata") {
@@ -82,7 +91,6 @@ TEST_CASE( "Thread safe 1D histogram" ){
 
 TEST_CASE( "Thread safe 2D histogram" )
 {
-
     CHECK( mat != nullptr );
 
     SUBCASE("Metadata") {
@@ -123,7 +131,6 @@ TEST_CASE( "Thread safe 2D histogram" )
 }
 
 TEST_CASE( "Thread safe 3D histogram" ){
-
     CHECK( cube != nullptr );
 
     SUBCASE("Metadata") {
@@ -175,23 +182,18 @@ TEST_CASE( "Thread safe 3D histogram" ){
 
 // Test will fail. To be implemented
 TEST_CASE( "Force flush all" ) {
-    ThreadSafeHistogramRegister hist_register;
-    hist_register.register1D(&ts_hist);
-    hist_register.register2D(&ts_mat);
-    hist_register.register3D(&ts_cube);
-
     for ( int i = 0 ; i < 100 ; ++i ) {
-        ts_hist.Fill(92.3 + i);
-        ts_mat.Fill(92.3 + i, 283.2-i);
-        ts_cube.Fill(92.3 + i, 283.2-i, i);
+        ts_hist2.Fill(92.3 + i);
+        ts_mat2.Fill(92.3 + i, 283.2-i);
+        ts_cube2.Fill(92.3 + i, 283.2-i, i);
     }
 
 
-    hist_register.force_flush();
+    histograms.force_flush();
 
-    CHECK(hist->GetEntries() == 102);
-    CHECK(mat->GetEntries() == 102);
-    CHECK(cube->GetEntries() == 102);
+    CHECK(hist2->GetEntries() == 100);
+    CHECK(mat2->GetEntries() == 100);
+    CHECK(cube2->GetEntries() == 100);
 }
 
 TEST_SUITE_END();
