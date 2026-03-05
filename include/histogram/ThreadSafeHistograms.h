@@ -63,12 +63,14 @@ namespace ThreadSafeHistogramDetails {
     };
 }
 
-template<typename T>
+template<typename T, typename V>
 class ThreadSafeHistogram
 {
 friend class ThreadSafeHistograms;
 private:
-    std::mutex &mutex;
+    std::list<V *>& list;
+    std::mutex& gmutex;
+    std::mutex& mutex;
     T *histogram;
 
     const size_t min_buffer;
@@ -106,13 +108,16 @@ protected:
 
     void unsafe_flush() { flush(); }
 
-    ThreadSafeHistogram(std::mutex &_mutex, T *_histogram,
+    ThreadSafeHistogram(std::list<V *>& _list, std::mutex& _gmutex, std::mutex &_mutex, T *_histogram,
                         const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
-        : mutex( _mutex )
+        : list( _list )
+        , gmutex( _gmutex )
+        , mutex( _mutex )
         , histogram( _histogram )
         , min_buffer( _min_buffer )
         , max_buffer( _max_buffer )
     {
+        list.push_back(static_cast<V *>(this));
         buffer.reserve( max_buffer );
     }
 
@@ -123,6 +128,8 @@ public:
     ~ThreadSafeHistogram()
     {
         force_flush();
+        std::lock_guard<std::mutex> guard(gmutex);
+        list.remove_if([this](auto &el){ return el == this; });
     }
 
     void force_flush()
@@ -133,24 +140,15 @@ public:
 
 };
 
-class ThreadSafeHistogram1D : public ThreadSafeHistogram<Histogram1D>
+class ThreadSafeHistogram1D : public ThreadSafeHistogram<Histogram1D, ThreadSafeHistogram1D>
 {
 private:
     friend class ThreadSafeHistograms;
-    std::list<ThreadSafeHistogram1D* >& _list;
 protected:
-    ThreadSafeHistogram1D(std::list<ThreadSafeHistogram1D* >& list, std::mutex &_mutex, Histogram1D *_histogram,
-                          const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
-        : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer )
-        , _list( list )
-    {
-        _list.push_back(this);
-    }
+    ThreadSafeHistogram1D(std::list<ThreadSafeHistogram1D *>& _list, std::mutex &_gmutex, std::mutex &_mutex,
+                          Histogram1D *_histogram, const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
+        : ThreadSafeHistogram( _list, _gmutex, _mutex, _histogram, _min_buffer, _max_buffer ){}
 public:
-    ~ThreadSafeHistogram1D() {
-        _list.remove_if([this](auto &el){ return el == this; });
-    }
-
     void Fill(const Axis::bin_t &x, const Histogram1D::data_t &n = 1)
     {
         buffer.emplace_back(x, n);
@@ -158,22 +156,15 @@ public:
     }
 };
 
-class ThreadSafeHistogram2D : public ThreadSafeHistogram<Histogram2D>
+class ThreadSafeHistogram2D : public ThreadSafeHistogram<Histogram2D, ThreadSafeHistogram2D>
 {
 private:
     friend class ThreadSafeHistograms;
-    std::list<ThreadSafeHistogram2D* >& _list;
 protected:
-    ThreadSafeHistogram2D(std::list<ThreadSafeHistogram2D* >& list, std::mutex &_mutex, Histogram2D *_histogram,
-                          const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
-            : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer )
-            , _list( list ){
-        _list.push_back(this);
-    }
+    ThreadSafeHistogram2D(std::list<ThreadSafeHistogram2D *>& _list, std::mutex& _gmutex, std::mutex &_mutex,
+                          Histogram2D *_histogram, const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
+            : ThreadSafeHistogram(_list, _gmutex, _mutex, _histogram, _min_buffer, _max_buffer ){}
 public:
-    ~ThreadSafeHistogram2D() {
-        _list.remove_if([this](auto &el){ return el == this; });
-    }
     void Fill(const Axis::bin_t &x, const Axis::bin_t &y, const Histogram2D::data_t &n = 1)
     {
         buffer.emplace_back(x, y, n);
@@ -182,23 +173,15 @@ public:
 
 };
 
-class ThreadSafeHistogram3D : public ThreadSafeHistogram<Histogram3D>
+class ThreadSafeHistogram3D : public ThreadSafeHistogram<Histogram3D, ThreadSafeHistogram3D>
 {
 private:
     friend class ThreadSafeHistograms;
-    std::list<ThreadSafeHistogram3D* >& _list;
 protected:
-    ThreadSafeHistogram3D(std::list<ThreadSafeHistogram3D* >& list, std::mutex &_mutex, Histogram3D *_histogram,
-                          const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
-            : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer )
-            , _list( list )
-    {
-        _list.push_back(this);
-    }
+    ThreadSafeHistogram3D(std::list<ThreadSafeHistogram3D *>& _list, std::mutex& _gmutex, std::mutex& _mutex,
+                          Histogram3D *_histogram, const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
+            : ThreadSafeHistogram(_list, _gmutex, _mutex, _histogram, _min_buffer, _max_buffer ){}
 public:
-    ~ThreadSafeHistogram3D() {
-        _list.remove_if([this](auto &el){ return el == this; });
-    }
     void Fill(const Axis::bin_t &x, const Axis::bin_t &y,  const Axis::bin_t &z, const Histogram1D::data_t &n = 1)
     {
         buffer.emplace_back(x, y, z, n);
@@ -242,19 +225,19 @@ private:
     ThreadSafeHistogram1D Get1D(const std::string &name)
     {
         auto p = Get(map1d, name);
-        return {list1d, p->mutex, p->object, min_buffer, max_buffer};
+        return {list1d, mutex, p->mutex, p->object, min_buffer, max_buffer};
     }
 
     ThreadSafeHistogram2D Get2D(const std::string &name)
     {
         auto p = Get(map2d, name);
-        return {list2d, p->mutex, p->object, min_buffer, max_buffer};
+        return {list2d, mutex, p->mutex, p->object, min_buffer, max_buffer};
     }
 
     ThreadSafeHistogram3D Get3D(const std::string &name)
     {
         auto p = Get(map3d, name);
-        return {list3d, p->mutex, p->object, min_buffer, max_buffer};
+        return {list3d, mutex, p->mutex, p->object, min_buffer, max_buffer};
     }
 
 public:
