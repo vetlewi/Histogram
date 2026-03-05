@@ -111,9 +111,10 @@ private:
 
     ThreadSafeHistogram3D Get3D(const std::string &name);
 
-protected:
+protected: // Note these functions are only ran from the ThreadSafeHistogram1D/2D/3D
     void List1D(ThreadSafeHistogram1D* hist) {
-        std::lock_guard<std::mutex> lock(mutex);
+        // Note these functions are only ran from ThreadSafeHistogram1D constructor.
+        // The constructor will only run if the mutex is already locked. This function should not lock the mutex.
         list1d.push_back(hist);
     }
 
@@ -123,7 +124,8 @@ protected:
     }
 
     void List2D(ThreadSafeHistogram2D* mat) {
-        std::lock_guard<std::mutex> lock(mutex);
+        // Note these functions are only ran from ThreadSafeHistogram2D constructor.
+        // The constructor will only run if the mutex is already locked. This function should not lock the mutex.
         list2d.push_back(mat);
     }
 
@@ -133,7 +135,8 @@ protected:
     }
 
     void List3D(ThreadSafeHistogram3D* cube) {
-        std::lock_guard<std::mutex> lock(mutex);
+        // Note these functions are only ran from ThreadSafeHistogram3D constructor.
+        // The constructor will only run if the mutex is already locked. This function should not lock the mutex.
         list3d.push_back(cube);
     }
 
