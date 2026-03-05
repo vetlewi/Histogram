@@ -32,6 +32,10 @@
 #include <histogram/Histogram2D.h>
 #include <histogram/Histogram3D.h>
 
+#include <histogram/ThreadSafeHistogram1D.h>
+#include <histogram/ThreadSafeHistogram2D.h>
+#include <histogram/ThreadSafeHistogram3D.h>
+
 /*!
  * Thread safe histograms are histograms where the underlying memory for the histogram are stored thread safely.
  * Each thread will get an "adapter" class that buffers the entries in a vector. If the buffer is larger than
@@ -48,7 +52,7 @@
 #include <exception>
 #include <stdexcept>
 
-class ThreadSafeHistograms;
+
 class ThreadSafeHistogram1D;
 class ThreadSafeHistogram2D;
 class ThreadSafeHistogram3D;
@@ -63,152 +67,14 @@ namespace ThreadSafeHistogramDetails {
     };
 }
 
-template<typename T>
-class ThreadSafeHistogram
-{
-friend class ThreadSafeHistograms;
-private:
-    std::mutex &mutex;
-    T *histogram;
-
-    const size_t min_buffer;
-    const size_t max_buffer;
-protected:
-    typename T::buffer_t buffer;
-
-private:
-    void flush()
-    {
-        for ( auto &element : buffer ){
-            histogram->FillDirect(element);
-        }
-        buffer.clear();
-    }
-
-    void try_flush()
-    {
-        if ( mutex.try_lock() ){
-            flush();
-            mutex.unlock();
-        }
-    }
-
-protected:
-    void check_buffer()
-    {
-        if ( buffer.size() < min_buffer )
-            return;
-        else if ( buffer.size() < max_buffer )
-            try_flush();
-        else
-            force_flush();
-    }
-
-    void unsafe_flush() { flush(); }
-
-    ThreadSafeHistogram(std::mutex &_mutex, T *_histogram,
-                        const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
-        : mutex( _mutex )
-        , histogram( _histogram )
-        , min_buffer( _min_buffer )
-        , max_buffer( _max_buffer )
-    {
-        buffer.reserve( max_buffer );
-    }
-
-public:
-    ThreadSafeHistogram(ThreadSafeHistogram&) = delete;
-    ThreadSafeHistogram(ThreadSafeHistogram&&)  = delete;
-
-    ~ThreadSafeHistogram()
-    {
-        force_flush();
-    }
-
-    void force_flush()
-    {
-        std::lock_guard lock(mutex);
-        flush();
-    }
-
-};
-
-class ThreadSafeHistogram1D : public ThreadSafeHistogram<Histogram1D>
-{
-private:
-    friend class ThreadSafeHistograms;
-    std::list<ThreadSafeHistogram1D* >& _list;
-protected:
-    ThreadSafeHistogram1D(std::list<ThreadSafeHistogram1D* >& list, std::mutex &_mutex, Histogram1D *_histogram,
-                          const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
-        : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer )
-        , _list( list )
-    {
-        _list.push_back(this);
-    }
-public:
-    ~ThreadSafeHistogram1D() {
-        _list.remove_if([this](auto &el){ return el == this; });
-    }
-
-    void Fill(const Axis::bin_t &x, const Histogram1D::data_t &n = 1)
-    {
-        buffer.emplace_back(x, n);
-        check_buffer();
-    }
-};
-
-class ThreadSafeHistogram2D : public ThreadSafeHistogram<Histogram2D>
-{
-private:
-    friend class ThreadSafeHistograms;
-    std::list<ThreadSafeHistogram2D* >& _list;
-protected:
-    ThreadSafeHistogram2D(std::list<ThreadSafeHistogram2D* >& list, std::mutex &_mutex, Histogram2D *_histogram,
-                          const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
-            : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer )
-            , _list( list ){
-        _list.push_back(this);
-    }
-public:
-    ~ThreadSafeHistogram2D() {
-        _list.remove_if([this](auto &el){ return el == this; });
-    }
-    void Fill(const Axis::bin_t &x, const Axis::bin_t &y, const Histogram2D::data_t &n = 1)
-    {
-        buffer.emplace_back(x, y, n);
-        check_buffer();
-    }
-
-};
-
-class ThreadSafeHistogram3D : public ThreadSafeHistogram<Histogram3D>
-{
-private:
-    friend class ThreadSafeHistograms;
-    std::list<ThreadSafeHistogram3D* >& _list;
-protected:
-    ThreadSafeHistogram3D(std::list<ThreadSafeHistogram3D* >& list, std::mutex &_mutex, Histogram3D *_histogram,
-                          const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
-            : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer )
-            , _list( list )
-    {
-        _list.push_back(this);
-    }
-public:
-    ~ThreadSafeHistogram3D() {
-        _list.remove_if([this](auto &el){ return el == this; });
-    }
-    void Fill(const Axis::bin_t &x, const Axis::bin_t &y,  const Axis::bin_t &z, const Histogram1D::data_t &n = 1)
-    {
-        buffer.emplace_back(x, y, z, n);
-        check_buffer();
-    }
-};
-
 class ThreadSafeHistograms
 {
+    friend class ThreadSafeHistogram1D;
+    friend class ThreadSafeHistogram2D;
+    friend class ThreadSafeHistogram3D;
+
 private:
+
     Histograms histograms;
     std::mutex mutex;
 
@@ -239,22 +105,41 @@ private:
         }
     }
 
-    ThreadSafeHistogram1D Get1D(const std::string &name)
-    {
-        auto p = Get(map1d, name);
-        return {list1d, p->mutex, p->object, min_buffer, max_buffer};
+    ThreadSafeHistogram1D Get1D(const std::string &name);
+
+    ThreadSafeHistogram2D Get2D(const std::string &name);
+
+    ThreadSafeHistogram3D Get3D(const std::string &name);
+
+protected:
+    void List1D(ThreadSafeHistogram1D* hist) {
+        std::lock_guard<std::mutex> lock(mutex);
+        list1d.push_back(hist);
     }
 
-    ThreadSafeHistogram2D Get2D(const std::string &name)
-    {
-        auto p = Get(map2d, name);
-        return {list2d, p->mutex, p->object, min_buffer, max_buffer};
+    void Remove1D(ThreadSafeHistogram1D* hist) {
+        std::lock_guard<std::mutex> lock(mutex);
+        list1d.remove_if([hist](auto &el){ return el == hist; });
     }
 
-    ThreadSafeHistogram3D Get3D(const std::string &name)
-    {
-        auto p = Get(map3d, name);
-        return {list3d, p->mutex, p->object, min_buffer, max_buffer};
+    void List2D(ThreadSafeHistogram2D* mat) {
+        std::lock_guard<std::mutex> lock(mutex);
+        list2d.push_back(mat);
+    }
+
+    void Remove2D(ThreadSafeHistogram2D* mat) {
+        std::lock_guard<std::mutex> lock(mutex);
+        list2d.remove_if([mat](auto &el){ return el == mat; });
+    }
+
+    void List3D(ThreadSafeHistogram3D* cube) {
+        std::lock_guard<std::mutex> lock(mutex);
+        list3d.push_back(cube);
+    }
+
+    void Remove3D(ThreadSafeHistogram3D* cube) {
+        std::lock_guard<std::mutex> lock(mutex);
+        list3d.remove_if([cube](auto &el){ return el == cube; });
     }
 
 public:
@@ -280,18 +165,7 @@ public:
                                     Axis::index_t channels,   /*!< The number of regular bins. */
                                     Axis::bin_t left,         /*!< The lower edge of the lowest bin.  */
                                     Axis::bin_t right,        /*!< The upper edge of the highest bin. */
-                                    const std::string& xtitle /*!< The title of the x axis. */)
-    {
-        std::lock_guard lock(mutex);
-        try {
-            return Get1D(name);
-        } catch ( std::out_of_range &e ){
-            // The histogram doesn't exist, we will create it now.
-            p1d hist = new ThreadSafeHistogramDetails::protected_object(histograms.Create1D(name, title, channels, left, right, xtitle));
-            map1d[name] = hist;
-            return Get1D(name);
-        }
-    }
+                                    const std::string& xtitle /*!< The title of the x axis. */);
 
 
     ThreadSafeHistogram2D Create2D( const std::string& name,   /*!< The name of the new histogram. */
@@ -303,22 +177,7 @@ public:
                                     Axis::index_t ychannels,   /*!< The number of regular bins on the y axis. */
                                     Axis::bin_t yleft,         /*!< The lower edge of the lowest bin on the y axis. */
                                     Axis::bin_t yright,        /*!< The upper edge of the highest bin on the y axis. */
-                                    const std::string& ytitle  /*!< The title of the y axis. */)
-    {
-        std::lock_guard lock(mutex);
-        try {
-            return Get2D(name);
-        } catch ( std::out_of_range &e ){
-            // The histogram doesn't exist, we will create it now.
-            p2d hist =
-                    new ThreadSafeHistogramDetails::protected_object(
-                            histograms.Create2D(name, title,
-                                                       xchannels, xleft, xright, xtitle,
-                                                       ychannels, yleft, yright, ytitle));
-            map2d[name] = hist;
-            return Get2D(name);
-        }
-    }
+                                    const std::string& ytitle  /*!< The title of the y axis. */);
 
     ThreadSafeHistogram3D Create3D( const std::string& name,   /*!< The name of the new histogram. */
                                     const std::string& title,  /*!< The title of teh new histogram. */
@@ -333,35 +192,9 @@ public:
                                     Axis::index_t zchannels,   /*!< The number of regular bins on the z axis. */
                                     Axis::bin_t zleft,         /*!< The lower edge of the lowest bin on the z axis. */
                                     Axis::bin_t zright,        /*!< The upper edge of the highest bin on the z axis. */
-                                    const std::string& ztitle  /*!< The title of the z axis. */)
-    {
-        std::lock_guard lock(mutex);
-        try {
-            return Get3D(name);
-        } catch (std::out_of_range &e) {
-            // The histogram doesn't exist, we will create it now.
-            p3d hist = new ThreadSafeHistogramDetails::protected_object(
-                    histograms.Create3D(name, title,
-                                        xchannels, xleft, xright, xtitle,
-                                        ychannels, yleft, yright, ytitle,
-                                        zchannels, zleft, zright, ztitle));
-            map3d[name] = hist;
-            return Get3D(name);
-        }
-    }
+                                    const std::string& ztitle  /*!< The title of the z axis. */);
 
-    void force_flush() {
-        std::lock_guard lock(mutex);
-        for ( auto hist : list1d ) {
-            hist->force_flush();
-        }
-        for ( auto mat : list2d ) {
-            mat->force_flush();
-        }
-        for ( auto cube : list3d ) {
-            cube->force_flush();
-        }
-    }
+    void force_flush();
 
     Histograms &GetHistograms(){ return histograms; }
 

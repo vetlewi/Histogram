@@ -29,6 +29,10 @@ set(headers
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/Histogram3D.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/Histograms.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/MamaWriter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/ThreadSafeHistogram.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/ThreadSafeHistogram1D.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/ThreadSafeHistogram2D.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/ThreadSafeHistogram3D.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/ThreadSafeHistograms.h
 )
 set(sources
@@ -36,6 +40,10 @@ set(sources
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histogram2D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histogram3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histograms.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/ThreadSafeHistogram1D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/ThreadSafeHistogram2D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/ThreadSafeHistogram3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/ThreadSafeHistograms.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/MamaWriter.cpp
 )
 
