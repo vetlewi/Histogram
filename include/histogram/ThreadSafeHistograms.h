@@ -41,10 +41,13 @@
 
 #include <string>
 #include <map>
+#include <list>
 #include <vector>
 #include <mutex>
 #include <exception>
 #include <stdexcept>
+
+class ThreadSafeHistograms;
 
 namespace ThreadSafeHistogramDetails {
     template<typename H>
@@ -95,6 +98,7 @@ protected:
         else
             force_flush();
     }
+    inline void unsafe_flush() { flush(); }
 
 public:
     ThreadSafeHistogram(std::mutex &_mutex, T *_histogram,
@@ -136,9 +140,9 @@ public:
                           const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
         : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer ){}
 
-    void Fill(const Axis::bin_t &x, const Axis::index_t &n = 1)
+    void Fill(const Axis::bin_t &x, const Histogram1D::data_t &n = 1)
     {
-        buffer.push_back({x, n});
+        buffer.emplace_back(x, n);
         check_buffer();
     }
 };
@@ -151,9 +155,9 @@ public:
                           const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
             : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer ){}
 
-    void Fill(const Axis::bin_t &x, const Axis::bin_t &y, const Axis::index_t &n = 1)
+    void Fill(const Axis::bin_t &x, const Axis::bin_t &y, const Histogram2D::data_t &n = 1)
     {
-        buffer.push_back({x, y, n});
+        buffer.emplace_back(x, y, n);
         check_buffer();
     }
 
@@ -166,17 +170,49 @@ public:
                           const size_t &_min_buffer = 1024, const size_t &_max_buffer = 16384)
             : ThreadSafeHistogram( _mutex, _histogram, _min_buffer, _max_buffer ){}
 
-    void Fill(const Axis::bin_t &x, const Axis::bin_t &y,  const Axis::bin_t &z, const Axis::index_t &n = 1)
+    void Fill(const Axis::bin_t &x, const Axis::bin_t &y,  const Axis::bin_t &z, const Histogram1D::data_t &n = 1)
     {
-        buffer.push_back({x, y, z, n});
+        buffer.emplace_back(x, y, z, n);
         check_buffer();
     }
+};
+
+class ThreadSafeHistogramRegister
+{
+private:
+
+
+    std::list<ThreadSafeHistogram1D*> list1d;
+    std::list<ThreadSafeHistogram2D*> list2d;
+    std::list<ThreadSafeHistogram3D*> list3d;
+
+public:
+    ThreadSafeHistogramRegister(){}
+    ~ThreadSafeHistogramRegister(){ force_flush(); }
+
+    void register1D(ThreadSafeHistogram1D* hist){ list1d.emplace_back(hist); }
+    void register2D(ThreadSafeHistogram2D* mat){ list2d.emplace_back(mat); }
+    void register3D(ThreadSafeHistogram3D* cube){ list3d.emplace_back(cube); }
+
+    void force_flush() {
+        for ( auto hist : list1d ) {
+            hist->force_flush();
+        }
+        for ( auto mat : list2d ) {
+            mat->force_flush();
+        }
+        for ( auto cube : list3d ) {
+            cube->force_flush();
+        }
+    }
+
 };
 
 class ThreadSafeHistograms
 {
 private:
     Histograms histograms;
+    std::mutex mutex;
 
     const size_t min_buffer;
     const size_t max_buffer;
@@ -189,6 +225,9 @@ private:
     std::map<std::string, p2d> map2d;
     std::map<std::string, p3d> map3d;
 
+    std::list<ThreadSafeHistogram1D> list1d;
+    std::list<ThreadSafeHistogram2D> list2d;
+    std::list<ThreadSafeHistogram3D> list3d;
 
     template<typename T>
     static typename T::value_type::second_type Get(T map, const std::string &name)
@@ -204,18 +243,21 @@ private:
     ThreadSafeHistogram1D Get1D(const std::string &name)
     {
         auto p = Get(map1d, name);
+        //list1d.emplace_back(p->mutex, p->object, min_buffer, max_buffer);
         return {p->mutex, p->object, min_buffer, max_buffer};
     }
 
     ThreadSafeHistogram2D Get2D(const std::string &name)
     {
         auto p = Get(map2d, name);
+        //list2d.emplace_back(p->mutex, p->object, min_buffer, max_buffer);
         return {p->mutex, p->object, min_buffer, max_buffer};
     }
 
     ThreadSafeHistogram3D Get3D(const std::string &name)
     {
         auto p = Get(map3d, name);
+        //list3d.emplace_back(p->mutex, p->object, min_buffer, max_buffer);
         return {p->mutex, p->object, min_buffer, max_buffer};
     }
 
@@ -244,13 +286,14 @@ public:
                                     Axis::bin_t right,        /*!< The upper edge of the highest bin. */
                                     const std::string& xtitle /*!< The title of the x axis. */)
     {
+        std::lock_guard lock(mutex);
         try {
             return Get1D(name);
         } catch ( std::out_of_range &e ){
             // The histogram doesn't exist, we will create it now.
             p1d hist = new ThreadSafeHistogramDetails::protected_object<Histogram1Dp>(histograms.Create1D(name, title, channels, left, right, xtitle));
             map1d[name] = hist;
-            return {hist->mutex, hist->object};
+            return Get1D(name);//{hist->mutex, hist->object};
         }
     }
 
@@ -266,6 +309,7 @@ public:
                                     Axis::bin_t yright,        /*!< The upper edge of the highest bin on the y axis. */
                                     const std::string& ytitle  /*!< The title of the y axis. */)
     {
+        std::lock_guard lock(mutex);
         try {
             return Get2D(name);
         } catch ( std::out_of_range &e ){
@@ -276,7 +320,7 @@ public:
                                                        xchannels, xleft, xright, xtitle,
                                                        ychannels, yleft, yright, ytitle));
             map2d[name] = hist;
-            return {hist->mutex, hist->object};
+            return Get2D(name);//{hist->mutex, hist->object};
         }
     }
 
@@ -295,6 +339,7 @@ public:
                                     Axis::bin_t zright,        /*!< The upper edge of the highest bin on the z axis. */
                                     const std::string& ztitle  /*!< The title of the z axis. */)
     {
+        std::lock_guard lock(mutex);
         try {
             return Get3D(name);
         } catch (std::out_of_range &e) {
@@ -305,7 +350,7 @@ public:
                                         ychannels, yleft, yright, ytitle,
                                         zchannels, zleft, zright, ztitle));
             map3d[name] = hist;
-            return {hist->mutex, hist->object};
+            return Get3D(name); //{hist->mutex, hist->object};
         }
     }
 

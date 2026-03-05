@@ -37,7 +37,7 @@
 class Histogram3D : public Named {
 public:
     //! The type used to count in each bin.
-    typedef size_t data_t;
+    typedef int64_t data_t;
 
     struct buf_t {
         Axis::bin_t x, y, z;

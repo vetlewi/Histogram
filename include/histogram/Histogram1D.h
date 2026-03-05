@@ -39,7 +39,7 @@
 class Histogram1D : public Named {
 public:
   //! The type used to count in each bin.
-  typedef size_t data_t;
+  typedef int64_t data_t;
 
   //! Typedef if buffer is used.
     struct buf_t {

@@ -119,6 +119,9 @@ TEST_CASE( "1D histogram" ){
         CHECK(hist->GetBinContent(hist->GetAxisX().GetBinCountAll()-1) == 1);
 
         CHECK(hist->GetBinContent(200000) == 0);
+
+        hist->Fill(10, -1);
+        CHECK(hist->GetBinContent(hist->GetAxisX().FindBin(10)) == -1);
     }
 
     SUBCASE("Find 1D histogram"){
@@ -224,6 +227,21 @@ TEST_CASE( "2D histogram" ){
 
         mat->Reset();
         CHECK(mat->GetEntries() == 0);
+    }
+
+    SUBCASE("Over/underflow"){
+        mat->Fill(-103020.2, -102382);
+        CHECK(mat->GetBinContent(0, 0) == 1);
+
+        mat->Fill(929292.1, 919932.);
+        CHECK(mat->GetBinContent(mat->GetAxisX().GetBinCountAll()-1,
+                                 mat->GetAxisY().GetBinCountAll()-1) == 1);
+
+        CHECK(mat->GetBinContent(1024, 2048) == 0);
+
+        mat->Fill(10, 10, -1);
+        CHECK(mat->GetBinContent(mat->GetAxisX().FindBin(10),
+                                 mat->GetAxisY().FindBin(10)) == -1);
     }
 
     SUBCASE("Find 2D histogram"){
@@ -343,6 +361,24 @@ TEST_CASE( "3D histogram" ){
         auto cube3 = histograms.Create3D("add_fail", "add_fail", 192, 0, 192, "x", 512, 0, 512, "y", 5, 0, 5, "z");
         CHECK_THROWS(cube->Add(cube3, 1.0));
 
+    }
+
+    SUBCASE("Over/underflow"){
+
+        cube->Fill(-103020.2, -102382, -2939);
+        CHECK(cube->GetBinContent(0, 0, 0) == 1);
+
+        cube->Fill(929292.1, 919932., 1003);
+        CHECK(cube->GetBinContent(cube->GetAxisX().GetBinCountAll()-1,
+                                  cube->GetAxisY().GetBinCountAll()-1,
+                                  cube->GetAxisZ().GetBinCountAll()-1) == 1);
+
+        CHECK(cube->GetBinContent(1024, 2048, 10) == 0);
+
+        cube->Fill(10, 100, 20, -1);
+        CHECK(cube->GetBinContent(cube->GetAxisX().FindBin(10),
+                                  cube->GetAxisY().FindBin(100),
+                                  cube->GetAxisZ().FindBin(20)) == -1);
     }
 
     SUBCASE("Find 3D histogram"){
