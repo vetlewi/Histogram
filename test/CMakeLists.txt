@@ -28,6 +28,7 @@ add_executable(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Histogram.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/ThreadSafeHistogram.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/SharedHistograms.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} doctest::doctest OCL::Histogram)

@@ -29,7 +29,9 @@ set(headers
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/Histogram3D.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/Histograms.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/MamaWriter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/SharedHistograms.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/ThreadSafeHistograms.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/internal/SharedMemoryBackend.h
 )
 set(sources
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histogram1D.cpp
@@ -37,6 +39,8 @@ set(sources
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histogram3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/Histograms.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/MamaWriter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/SharedHistograms.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/histogram/internal/SharedMemoryBackendPosix.cpp
 )
 
 if(ROOT_FOUND)
