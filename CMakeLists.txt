@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(Histogram VERSION 2.0.0 LANGUAGES C CXX)
+project(Histogram VERSION 2.1.0 LANGUAGES C CXX)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 include(cmake/CPM.cmake)
