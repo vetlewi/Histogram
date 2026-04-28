@@ -491,3 +491,132 @@ SharedHistogram3Dp SharedHistograms::Find3D(const std::string &name) const
             ReadField(d->xtitle), d->ychannels, d->yleft, d->yright, ReadField(d->ytitle), d->zchannels, d->zleft,
             d->zright, ReadField(d->ztitle), &d->entries, data, impl->writable));
 }
+
+SharedHistograms::list1d_t SharedHistograms::GetAll1D() {
+    list1d_t result;
+
+    for (std::size_t i = 0; i < impl->header->max_histograms; ++i) {
+        auto *d = &impl->descriptors[i];
+
+        if (d->in_use == 0) {
+            continue;
+        }
+        if (d->dimension != static_cast<std::uint8_t>(SharedHistogramDimension::D1)) {
+            continue;
+        }
+
+        auto *data = impl->GetData(d);
+
+        result.emplace_back(new SharedHistogram1D(
+            ReadField(d->name),
+            ReadField(d->title),
+            ReadField(d->path),
+            d->xchannels,
+            d->xleft,
+            d->xright,
+            ReadField(d->xtitle),
+            &d->entries,
+            data,
+            impl->writable
+        ));
+    }
+
+    return result;
+}
+
+SharedHistograms::list2d_t SharedHistograms::GetAll2D() {
+    list2d_t result;
+
+    for (std::size_t i = 0; i < impl->header->max_histograms; ++i) {
+        auto *d = &impl->descriptors[i];
+
+        if (d->in_use == 0) {
+            continue;
+        }
+        if (d->dimension != static_cast<std::uint8_t>(SharedHistogramDimension::D2)) {
+            continue;
+        }
+
+        auto *data = impl->GetData(d);
+
+        result.emplace_back(new SharedHistogram2D(
+            ReadField(d->name),
+            ReadField(d->title),
+            ReadField(d->path),
+            d->xchannels,
+            d->xleft,
+            d->xright,
+            ReadField(d->xtitle),
+            d->ychannels,
+            d->yleft,
+            d->yright,
+            ReadField(d->ytitle),
+            &d->entries,
+            data,
+            impl->writable
+        ));
+    }
+
+    return result;
+}
+
+SharedHistograms::list3d_t SharedHistograms::GetAll3D() {
+    list3d_t result;
+
+    for (std::size_t i = 0; i < impl->header->max_histograms; ++i) {
+        auto *d = &impl->descriptors[i];
+
+        if (d->in_use == 0) {
+            continue;
+        }
+        if (d->dimension != static_cast<std::uint8_t>(SharedHistogramDimension::D3)) {
+            continue;
+        }
+
+        auto *data = impl->GetData(d);
+
+        result.emplace_back(new SharedHistogram3D(
+            ReadField(d->name),
+            ReadField(d->title),
+            ReadField(d->path),
+            d->xchannels,
+            d->xleft,
+            d->xright,
+            ReadField(d->xtitle),
+            d->ychannels,
+            d->yleft,
+            d->yright,
+            ReadField(d->ytitle),
+            d->zchannels,
+            d->zleft,
+            d->zright,
+            ReadField(d->ztitle),
+            &d->entries,
+            data,
+            impl->writable
+        ));
+    }
+
+    return result;
+}
+
+void SharedHistograms::ResetAll()
+{
+    EnsureWritable(impl->writable);
+
+    for (std::size_t i = 0; i < impl->header->max_histograms; ++i) {
+        auto *d = &impl->descriptors[i];
+
+        if (d->in_use == 0) {
+            continue;
+        }
+
+        auto *data = impl->GetData(d);
+
+        // Zero data
+        std::fill(data, data + d->data_count, 0);
+
+        // Reset entries
+        d->entries = 0;
+    }
+}
