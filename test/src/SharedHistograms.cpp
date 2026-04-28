@@ -43,10 +43,12 @@ TEST_CASE("Creator and consumer can share 1D/2D/3D histograms")
     auto c1 = consumer.Find1D("h1");
     auto c2 = consumer.Find2D("h2");
     auto c3 = consumer.Find3D("h3");
+    auto c4 = consumer.Find3D("h4");
 
-    REQUIRE(c1 != nullptr);
-    REQUIRE(c2 != nullptr);
-    REQUIRE(c3 != nullptr);
+    REQUIRE(c1.get() != nullptr);
+    REQUIRE(c2.get() != nullptr);
+    REQUIRE(c3.get() != nullptr);
+    REQUIRE(c4.get() == nullptr);
 
     CHECK(c1->GetEntries() == 1);
     CHECK(c2->GetEntries() == 1);
@@ -54,8 +56,7 @@ TEST_CASE("Creator and consumer can share 1D/2D/3D histograms")
 
     CHECK(c1->GetBinContent(c1->GetAxisX().FindBin(4.2)) == 3);
     CHECK(c2->GetBinContent(c2->GetAxisX().FindBin(1.1), c2->GetAxisY().FindBin(2.2)) == 5);
-    CHECK(c3->GetBinContent(c3->GetAxisX().FindBin(1.1), c3->GetAxisY().FindBin(2.2), c3->GetAxisZ().FindBin(3.3)) ==
-          7);
+    CHECK(c3->GetBinContent(c3->GetAxisX().FindBin(1.1), c3->GetAxisY().FindBin(2.2), c3->GetAxisZ().FindBin(3.3)) == 7);
 #else
     CHECK_THROWS(SharedHistograms::Create("unsupported", 1024, 2, true));
 #endif
