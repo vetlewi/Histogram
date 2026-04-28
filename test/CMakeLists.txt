@@ -15,7 +15,7 @@ include(../cmake/tools.cmake)
 
 include(../cmake/CPM.cmake)
 
-CPMAddPackage("gh:doctest/doctest@2.4.12")
+CPMAddPackage("gh:doctest/doctest@2.5.2")
 CPMAddPackage("gh:TheLartians/Format.cmake@1.8.3")
 
 if(TEST_INSTALLED_VERSION)
@@ -28,6 +28,7 @@ add_executable(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Histogram.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/ThreadSafeHistogram.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/SharedHistograms.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} doctest::doctest OCL::Histogram)
