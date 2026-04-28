@@ -98,6 +98,15 @@ private:
 
 class SharedHistograms {
 public:
+    //! A list of 1D histograms.
+    typedef std::vector<SharedHistogram1Dp> list1d_t;
+
+    //! A list of 2D histograms.
+    typedef std::vector<SharedHistogram2Dp> list2d_t;
+
+    //! A list of 3D histograms.
+    typedef std::vector<SharedHistogram3Dp> list3d_t;
+
     static SharedHistograms Create(const std::string &shared_name, std::size_t shared_memory_size,
                                    std::size_t max_histograms = 256, bool unlink_on_destroy = false);
     static SharedHistograms Attach(const std::string &shared_name, bool read_only = true);
@@ -124,6 +133,18 @@ public:
     SharedHistogram1Dp Find1D(const std::string &name) const;
     SharedHistogram2Dp Find2D(const std::string &name) const;
     SharedHistogram3Dp Find3D(const std::string &name) const;
+
+    //! Get a list of all 1D histograms.
+    list1d_t GetAll1D();
+
+    //! Get a list of all 2D histograms.
+    list2d_t GetAll2D();
+
+    //! Get a list of all 3D histograms.
+    list3d_t GetAll3D();
+
+    //! Call Reset() on all histograms.
+    void ResetAll();
 
 private:
     struct Impl;
