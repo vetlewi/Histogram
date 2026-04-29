@@ -201,9 +201,9 @@ TEST_CASE("Stress: many histograms across all dimensions")
     CHECK(list3.size() == N3);
 
     // Spot-check a few
-    CHECK(consumer.Find1D("h1_0") != nullptr);
-    CHECK(consumer.Find2D("h2_10") != nullptr);
-    CHECK(consumer.Find3D("h3_5") != nullptr);
+    CHECK(consumer.Find1D("h1_0").get() != nullptr);
+    CHECK(consumer.Find2D("h2_10").get() != nullptr);
+    CHECK(consumer.Find3D("h3_5").get() != nullptr);
 #else
     CHECK(true);
 #endif
