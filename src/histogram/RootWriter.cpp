@@ -16,6 +16,8 @@
 #include "Histogram2D.h"
 #include "Histogram3D.h"
 
+#include "SharedHistograms.h"
+
 // ########################################################################
 
 void RootWriter::Navigate(Named *named, TFile *file)
@@ -68,7 +70,37 @@ void RootWriter::Write(Histograms& histograms, const char *filename,
 
 // ########################################################################
 
-TH1p RootWriter::CreateTH1(Histogram1Dp h)
+void RootWriter::Write(SharedHistograms& histograms, const char *filename,
+                       const char *title, const char *options)
+{
+    TFile outfile(filename, options, title);
+
+    SharedHistograms::list1d_t list1d = histograms.GetAll1D();
+    for(auto & it : list1d) {
+        Navigate(it.get(), &outfile);
+        CreateTH1(it);
+    }
+
+    SharedHistograms::list2d_t list2d = histograms.GetAll2D();
+    for(auto & it : list2d) {
+        Navigate(it.get(), &outfile);
+        CreateTH2(it);
+    }
+
+    SharedHistograms::list3d_t list3d = histograms.GetAll3D();
+    for(auto & it : list3d) {
+        Navigate(it.get(), &outfile);
+        CreateTH3(it);
+    }
+
+    outfile.Write();
+    outfile.Close();
+}
+
+// ########################################################################
+
+template<typename T>
+TH1p RootWriter::CreateTH1(T h)
 {
   const Axis& xax = h->GetAxisX();
   const int channels = xax.GetBinCount();
@@ -99,7 +131,8 @@ TH1p RootWriter::CreateTH1(Histogram1Dp h)
 
 // ########################################################################
 
-TH2* RootWriter::CreateTH2(Histogram2Dp h)
+template<typename T>
+TH2* RootWriter::CreateTH2(T h)
 {
   const Axis& xax = h->GetAxisX();
   const Axis& yax = h->GetAxisY();
@@ -135,7 +168,8 @@ TH2* RootWriter::CreateTH2(Histogram2Dp h)
 
 // ########################################################################
 
-TH3* RootWriter::CreateTH3(Histogram3Dp h)
+template<typename T>
+TH3* RootWriter::CreateTH3(T h)
 {
     const Axis& xax = h->GetAxisX();
     const Axis& yax = h->GetAxisY();

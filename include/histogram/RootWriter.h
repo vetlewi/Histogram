@@ -32,6 +32,7 @@ typedef Histogram2D* Histogram2Dp;
 typedef Histogram3D* Histogram3Dp;
 
 class Histograms;
+class SharedHistograms;
 
 #define ROOT1D_YTITLE 1 // 0=No title on y-axis, 1=Counts/binwidth on y-axis.
 
@@ -62,20 +63,28 @@ public:
                      const char *title = "",          /*!< Title of the ROOT file.  */
                      const char *options = "RECREATE" /*!< ROOT file options.       */);
 
-  //! Create a ROOT histogram from a Histogram1D.
-  /*! \return the ROOT 1D histogram.
-   */
-  static TH1p CreateTH1(Histogram1Dp h /*!< The Histogram1D to be cpoied. */);
+    static void Write( SharedHistograms& histograms,    /*!< The histogram list.      */
+                       const char *filename,            /*!< The output filename.     */
+                       const char *title = "",          /*!< Title of the ROOT file.  */
+                       const char *options = "RECREATE" /*!< ROOT file options.       */);
 
-  //! Create a ROOT histogram from a Histogram2D.
-  /*! \return the ROOT 2D histogram.
-   */
-  static TH2p CreateTH2(Histogram2Dp m /*!< The Histogram2D to be cpoied. */);
+    //! Create a ROOT histogram from a Histogram1D.
+    /*! \return the ROOT 1D histogram.
+     */
+    template<typename T>
+    static TH1p CreateTH1(T h /*!< The Histogram1D to be cpoied. */);
 
-  //! Create a ROOT histogram from a Histogram2D.
-  /*! \return the ROOT 2D histogram.
-   */
-  static TH3p CreateTH3(Histogram3Dp m /*!< The Histogram2D to be cpoied. */);
+    //! Create a ROOT histogram from a Histogram2D.
+    /*! \return the ROOT 2D histogram.
+     */
+    template<typename T>
+    static TH2p CreateTH2(T m /*!< The Histogram2D to be cpoied. */);
+
+    //! Create a ROOT histogram from a Histogram2D.
+    /*! \return the ROOT 2D histogram.
+     */
+    template<typename T>
+    static TH3p CreateTH3(T m /*!< The Histogram2D to be cpoied. */);
 };
 
 #endif /* RootWriter_H_ */
