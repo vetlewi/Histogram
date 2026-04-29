@@ -11,6 +11,7 @@
 
 #include <sys/mman.h>   // shm_unlink
 #include <cerrno>
+#include <iostream>
 
 char leaveprog = 'n';
 
@@ -47,10 +48,12 @@ int main() {
     auto creator = SharedHistograms::Create("test", 503316480, 30, true);
 
     auto hist = creator.Create1D("hist", "hist", 65536, 0, 65536, "Channel [ch]");
+    auto mat = creator.Create2D("mat", "mat", 65536, 0, 65536, "Channel [ch]", 30, 0, 30, "Detector#");
 
     std::random_device rd{};
     std::mt19937 gen{rd()};
     std::normal_distribution<double> dist{1332., 35.0};
+    std::uniform_int_distribution<int> det(0, 29);  // inclusive range [0, 30]
 
     while (leaveprog == 'n') {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -59,6 +62,11 @@ int main() {
 
         double y = dist(gen);
         hist->Fill(y);
+
+        unsigned int dno = det(gen);
+        y = dist(gen);
+        mat->Fill(y, dno);
+
     }
 
 }
