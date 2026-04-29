@@ -16,7 +16,7 @@ namespace {
 std::string MakeSharedName(const std::string &suffix)
 {
 #if defined(__linux__) || defined(__APPLE__)
-    return "/histogram_test_" + suffix + "_" + std::to_string(static_cast<long long>(::getpid()));
+    return "/histogram_test_" + suffix;
 #else
     return "histogram_test_" + suffix;
 #endif
@@ -161,6 +161,98 @@ TEST_CASE("ResetAll throws on read-only mapping")
     auto consumer = SharedHistograms::Attach(shared_name, true); // read-only
 
     CHECK_THROWS(consumer.ResetAll());
+#else
+    CHECK(true);
+#endif
+}
+
+TEST_CASE("Stress: many histograms across all dimensions")
+{
+#if defined(__linux__) || defined(__APPLE__)
+    const std::string shared_name = MakeSharedName("stress_many");
+    ::shm_unlink(shared_name.c_str());
+
+    constexpr std::size_t N1 = 40;
+    constexpr std::size_t N2 = 30;
+    constexpr std::size_t N3 = 20;
+
+
+    auto creator = SharedHistograms::Create(shared_name, 16 * 1024 * 1024, 128, true);
+
+    // Create lots of histograms
+    for (std::size_t i = 0; i < N1; ++i) {
+        creator.Create1D("h1_" + std::to_string(i), "t", 16, 0, 16, "x");
+    }
+    for (std::size_t i = 0; i < N2; ++i) {
+        creator.Create2D("h2_" + std::to_string(i), "t", 8, 0, 8, "x", 8, 0, 8, "y");
+    }
+    for (std::size_t i = 0; i < N3; ++i) {
+        creator.Create3D("h3_" + std::to_string(i), "t", 4, 0, 4, "x", 4, 0, 4, "y", 4, 0, 4, "z");
+    }
+
+    auto consumer = SharedHistograms::Attach(shared_name);
+
+    auto list1 = consumer.GetAll1D();
+    auto list2 = consumer.GetAll2D();
+    auto list3 = consumer.GetAll3D();
+
+    CHECK(list1.size() == N1);
+    CHECK(list2.size() == N2);
+    CHECK(list3.size() == N3);
+
+    // Spot-check a few
+    CHECK(consumer.Find1D("h1_0").get() != nullptr);
+    CHECK(consumer.Find2D("h2_10").get() != nullptr);
+    CHECK(consumer.Find3D("h3_5").get() != nullptr);
+#else
+    CHECK(true);
+#endif
+}
+
+TEST_CASE("Stress: heavy fill and global reset")
+{
+#if defined(__linux__) || defined(__APPLE__)
+    const std::string shared_name = MakeSharedName("stress2");
+    ::shm_unlink(shared_name.c_str());
+
+    constexpr std::size_t N = 20;
+
+    auto creator = SharedHistograms::Create(shared_name, 16 * 1024 * 1024, 64, true);
+
+    std::vector<SharedHistogram1Dp> hists;
+
+    for (std::size_t i = 0; i < N; ++i) {
+        auto h = creator.Create1D("h_" + std::to_string(i), "t", 32, 0, 32, "x");
+        hists.push_back(h);
+    }
+
+    // Fill heavily with different patterns
+    for (std::size_t i = 0; i < N; ++i) {
+        for (int j = 0; j < 1000; ++j) {
+            double value = (j % 32) + 0.5;
+            hists[i]->Fill(value, static_cast<int>(i + 1));
+        }
+    }
+
+    // Verify accumulation
+    for (std::size_t i = 0; i < N; ++i) {
+        CHECK(hists[i]->GetEntries() == 1000);
+
+        auto bin = hists[i]->GetAxisX().FindBin(5.5);
+        CHECK(hists[i]->GetBinContent(bin) > 0); // not exact, just sanity
+    }
+
+    // Reset everything
+    creator.ResetAll();
+
+    // Verify everything is zeroed
+    for (std::size_t i = 0; i < N; ++i) {
+        CHECK(hists[i]->GetEntries() == 0);
+
+        for (Axis::index_t b = 0; b < hists[i]->GetAxisX().GetBinCountAll(); ++b) {
+            CHECK(hists[i]->GetBinContent(b) == 0);
+        }
+    }
 #else
     CHECK(true);
 #endif
