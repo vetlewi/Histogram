@@ -5,7 +5,7 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 include(cmake/CPM.cmake)
 
 # PackageProject.cmake will be used to make our target installable
-CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.13.0")
+CPMAddPackage(NAME PackageProject.cmake SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/cmake/PackageProject.cmake)
 
 find_package(Threads REQUIRED)
 find_package(ROOT COMPONENTS RIO Hist)
