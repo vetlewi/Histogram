@@ -10,18 +10,6 @@ CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.13.0")
 find_package(Threads REQUIRED)
 find_package(ROOT COMPONENTS RIO Hist)
 
-CPMAddPackage(
-        NAME sanitizers-cmake
-        GITHUB_REPOSITORY arsenm/sanitizers-cmake
-        GIT_TAG 99e159ec9bc8dd362b08d18436bd40ff0648417b
-        DOWNLOAD_ONLY YES
-)
-
-if ( sanitizers-cmake_ADDED )
-    set(CMAKE_MODULE_PATH "${sanitizers-cmake_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-    find_package(Sanitizers)
-endif()
-
 # ---- Add source files ----
 set(headers
     ${CMAKE_CURRENT_SOURCE_DIR}/include/histogram/Histogram1D.h
