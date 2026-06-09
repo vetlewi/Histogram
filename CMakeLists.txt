@@ -1,14 +1,26 @@
 cmake_minimum_required(VERSION 3.15)
-project(Histogram VERSION 2.3.1 LANGUAGES C CXX)
+project(Histogram VERSION 2.3.0 LANGUAGES C CXX)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 include(cmake/CPM.cmake)
 
 # PackageProject.cmake will be used to make our target installable
-CPMAddPackage(NAME PackageProject.cmake SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/cmake/PackageProject.cmake)
+CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.13.0")
 
 find_package(Threads REQUIRED)
 find_package(ROOT COMPONENTS RIO Hist)
+
+CPMAddPackage(
+        NAME sanitizers-cmake
+        GITHUB_REPOSITORY arsenm/sanitizers-cmake
+        GIT_TAG 99e159ec9bc8dd362b08d18436bd40ff0648417b
+        DOWNLOAD_ONLY YES
+)
+
+if ( sanitizers-cmake_ADDED )
+    set(CMAKE_MODULE_PATH "${sanitizers-cmake_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+    find_package(Sanitizers)
+endif()
 
 # ---- Add source files ----
 set(headers
