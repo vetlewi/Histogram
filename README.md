@@ -4,7 +4,7 @@ This package contains a simple library to provide a simple histogram data type.
 ### Usage:
 If you use CPM the library are easily imported by
 ````cmake
-CPMAddPackage("gh:vetlewi/Histogram@1.1.1")
+CPMAddPackage("gh:vetlewi/Histogram@2.3.1")
 ````
 
 ### TODO:
